@@ -1,0 +1,152 @@
+Pinlist
+
+Exported from base.sch at 21/11/2020 12:48
+
+EAGLE Version 9.6.2 Copyright (c) 1988-2020 Autodesk, Inc.
+
+Part     Pad      Pin        Dir      Net
+
+J1       1        1          io       D0
+         2        2          io       D1
+         3        3          io       VCC
+         4        4          io       GND
+
+J2       1        1          io       D2
+         2        2          io       D3
+         3        3          io       VCC
+         4        4          io       GND
+
+J3       1        1          io       D3
+         2        2          io       D4
+         3        3          io       VCC
+         4        4          io       GND
+
+J4       1        1          io       D4
+         2        2          io       D5
+         3        3          io       VCC
+         4        4          io       GND
+
+J5       1        1          io       D5
+         2        2          io       D6
+         3        3          io       VCC
+         4        4          io       GND
+
+J6       1        1          io       D6
+         2        2          io       D7
+         3        3          io       VCC
+         4        4          io       GND
+
+J7       1        1          io       D7
+         2        2          io       D8
+         3        3          io       VCC
+         4        4          io       GND
+
+J8       1        1          io       D8
+         2        2          io       D9
+         3        3          io       VCC
+         4        4          io       GND
+
+J9       1        1          io       A0
+         2        2          io       A1
+         3        3          io       VCC
+         4        4          io       GND
+
+J10      1        1          io       A1
+         2        2          io       A2
+         3        3          io       VCC
+         4        4          io       GND
+
+J11      1        1          io       A2
+         2        2          io       A3
+         3        3          io       VCC
+         4        4          io       GND
+
+J12      1        1          io       A3
+         2        2          io       A4
+         3        3          io       VCC
+         4        4          io       GND
+
+J13      1        1          io       SCL
+         2        2          io       SDA
+         3        3          io       VCC
+         4        4          io       GND
+
+J14      1        1          io       SCL
+         2        2          io       SDA
+         3        3          io       VCC
+         4        4          io       GND
+
+J15      1        1          io       SCL
+         2        2          io       SDA
+         3        3          io       VCC
+         4        4          io       GND
+
+J16      1        1          io       SCL
+         2        2          io       SDA
+         3        3          io       VCC
+         4        4          io       GND
+
+P1       1        1          io       A4
+         2        2          io       SDA
+
+P2       1        1          io       SCL
+         2        2          io       A5
+
+PWR      A        +          pas      N$1
+         K        -          pas      GND
+
+R1       1        1          pas      VCC
+         2        2          pas      N$1
+
+R2       1        1          pas      VCC
+         2        2          pas      RST
+
+RST      P$1      1          io       RST
+         P$2      2          io       GND
+
+SW1      CH1A     CH1A       io       3V3
+         CH1B     CH1B       io       5V
+         CH2A     CH2A       io       3V3
+         CH2B     CH2B       io       5V
+         COM1     COM1       io       VCC
+         COM2     COM2       io       VCC
+
+U2       1        PD0/D0/RX  io       D0
+         2        PD1/D1/TX  io       D1
+         3        PD2/D2/INT0 io       D2
+         4        PD3/D3/INT1/PWM io       D3
+         5        PD4/D4     io       D4
+         6        PD5/D5/PWM io       D5
+         7        PD6/D6/PWM io       D6
+         8        PD7/D7     io       D7
+         9        PB0/D8     io       D8
+         10       PB1/D9/PWM io       D9
+         11       PB2/D10/SS/PWM io       D10
+         12       PB3/D11/MOSI/PWM io       D11
+         13       PB4/D12/MISO io       D12
+         14       PB5/D13/SCK io       D13
+         15       GND        io       GND
+         16       AREF       io       AREF
+         17       SDA        io       SDA
+         18       SCL        io       SCL
+         19       PC0/AD0/D14 io       A0
+         20       PC1/AD1/D15 io       A1
+         21       PC2/AD2/D16 io       A2
+         22       PC3/AD3/D17 io       A3
+         23       PC4/AD4/D18/SDA io       A4
+         24       PC5/AD5/D19/SCL io       A5
+         25       VIN        io       VIN
+         26       GND        io       GND
+         27       GND        io       GND
+         28       5V         io       5V
+         29       3V3        io       3V3
+         30       RESET      io       RST
+         31       ADC7       io       IOREF
+         32       ADC6       io                *** unconnected ***
+         33       VCC        io                *** unconnected ***
+         34       MOSI       io                *** unconnected ***
+         35       GND        io                *** unconnected ***
+         36       RST        io                *** unconnected ***
+         37       SCK        io                *** unconnected ***
+         38       MISO       io                *** unconnected ***
+

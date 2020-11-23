@@ -1,0 +1,457 @@
+Netlist
+
+Exported from mega.sch at 21/11/2020 11:31
+
+EAGLE Version 9.6.2 Copyright (c) 1988-2020 Autodesk, Inc.
+
+Net      Part          Pad      Pin        Sheet
+
++3V3     C13           2        2          1
+         IC5           6        -IN        1
+         IC6           5        OUT        1
+         POWER         2        2          1
+
++5V      C11           2        2          1
+         C4            1        1          1
+         C5            1        1          1
+         C6            1        1          1
+         C9            1        1          1
+         IC1           2        OUT        1
+         IC1           4        OUT        1
+         IC2           2        VO         1
+         IC3           10       VCC        1
+         IC3           100      AVCC       1
+         IC3           31       VCC1       1
+         IC3           61       VCC2       1
+         IC3           80       VCC3       1
+         IC4           32       AVCC       1
+         IC4           4        VCC        1
+         IC5           8        V+         1
+         IC6           1        IN         1
+         IC6           3        !EN        1
+         ICSP          2        2          1
+         ICSP1         2        2          1
+         JP1           1        1          1
+         JP2           1        1          1
+         PC2           +        +          1
+         POWER         3        3          1
+         RN1           6        2          1
+         RN1           7        2          1
+         RN1           8        2          1
+         RN3           3        1          1
+         RN4           5        2          1
+         RN4           6        2          1
+         RN5           1        1          1
+         T2            2        S          1
+
+5-GND    RESET         5        5-GND      1
+
+ADC0     ADCL          1        1          1
+         IC3           97       (ADC0)PF0  1
+
+ADC1     ADCL          2        2          1
+         IC3           96       (ADC1)PF1  1
+
+ADC2     ADCL          3        3          1
+         IC3           95       (ADC2)PF2  1
+
+ADC3     ADCL          4        4          1
+         IC3           94       (ADC3)PF3  1
+
+ADC4     ADCL          5        5          1
+         IC3           93       (ADC4/TCK)PF4 1
+
+ADC5     ADCL          6        6          1
+         IC3           92       (ADC5/TMS)PF5 1
+
+ADC6     ADCL          7        7          1
+         IC3           91       (ADC6/TDO)PF6 1
+
+ADC7     ADCL          8        8          1
+         IC3           90       (ADC7/TDI)PF7 1
+
+ADC8     ADCH          1        1          1
+         IC3           89       PK0(ADC8/PCINT16) 1
+
+ADC9     ADCH          2        2          1
+         IC3           88       PK1(ADC9/PCINT17) 1
+
+ADC10    ADCH          3        3          1
+         IC3           87       PK2(ADC10/PCINT18) 1
+
+ADC11    ADCH          4        4          1
+         IC3           86       PK3(ADC11/PCINT19) 1
+
+ADC12    ADCH          5        5          1
+         IC3           85       PK4(ADC12/PCINT20) 1
+
+ADC13    ADCH          6        6          1
+         IC3           84       PK5(ADC13/PCINT21) 1
+
+ADC14    ADCH          7        7          1
+         IC3           83       PK6(ADC14/PCINT22) 1
+
+ADC15    ADCH          8        8          1
+         IC3           82       PK7(ADC15/PCINT23) 1
+
+AREF     C3            1        1          1
+         IC3           98       AREF       1
+         PWMH          8        8          1
+
+CMP      C12           2        2          1
+         IC5           5        +IN        1
+         RN5           3        1          1
+         RN5           7        2          1
+
+D+       RN2           5        2          1
+         X2            3        3          1
+         Z2            2        2          1
+
+D-       RN2           8        2          1
+         X2            2        2          1
+         Z1            2        2          1
+
+DTR      C7            1        1          1
+         IC4           13       (CTS/HWB/AIN6/TO/INT7)PD7 1
+         UBOOT         1        1          1
+
+GATE_CMD IC5           7        OUT        1
+         T2            3        G          1
+
+GND      C1            2        2          1
+         C11           1        1          1
+         C12           1        1          1
+         C13           1        1          1
+         C14           1        1          1
+         C15           1        1          1
+         C16           2        2          1
+         C17           2        2          1
+         C2            2        2          1
+         C3            2        2          1
+         C4            2        2          1
+         C5            2        2          1
+         C6            2        2          1
+         C8            2        2          1
+         C9            2        2          1
+         GROUND        2        2          1
+         IC1           1        GND/ADJ    1
+         IC2           1        ADJ        1
+         IC3           11       GND        1
+         IC3           32       GND1       1
+         IC3           62       GND2       1
+         IC3           81       GND3       1
+         IC3           99       AGND       1
+         IC4           3        GND        1
+         IC4           EXP      PAD        1
+         IC5           2        -IN        1
+         IC5           3        +IN        1
+         IC5           4        V-         1
+         IC6           2        GND        1
+         ICSP          6        6          1
+         ICSP1         6        6          1
+         JP3           1        1          1
+         JP4           1        1          1
+         L             C        C          1
+         ON            C        C          1
+         PC1           -        -          1
+         PC2           -        -          1
+         POWER         4        4          1
+         POWER         5        5          1
+         PWMH          7        7          1
+         RESET         1        1          1
+         RESET         2        2          1
+         RN5           2        1          1
+         UBOOT         2        2          1
+         X1            1        1          1
+         X1            3        3          1
+         Y1            2        2          1
+         Y2            2        2          1
+
+M8RXD    IC4           9        (TXD1/INT3)PD3 1
+         RN4           7        2          1
+
+M8TXD    IC4           8        (RXD1/AIN1/INT2)PD2 1
+         RN4           8        2          1
+
+MISO2    IC4           17       (PD0/MISO/PCINT3)PB3 1
+         ICSP1         1        1          1
+
+MOSI2    IC4           16       (PDI/MOSI/PCINT2)PB2 1
+         ICSP1         4        4          1
+
+N$2      L             A        A          1
+         RN3           4        1          1
+
+N$3      ON            A        A          1
+         RN3           6        2          1
+
+N$54     RN4           4        1          1
+         RX            A        A          1
+
+N$55     RN4           3        1          1
+         TX            A        A          1
+
+PA0      IC3           78       (AD0)PA0   1
+         XIOH          16       16         1
+
+PA1      IC3           77       (AD1)PA1   1
+         XIOH          15       15         1
+
+PA2      IC3           76       (AD2)PA2   1
+         XIOH          14       14         1
+
+PA3      IC3           75       (AD3)PA3   1
+         XIOH          13       13         1
+
+PA4      IC3           74       (AD4)PA4   1
+         XIOH          12       12         1
+
+PA5      IC3           73       (AD5)PA5   1
+         XIOH          11       11         1
+
+PA6      IC3           72       (AD6)PA6   1
+         XIOH          10       10         1
+
+PA7      IC3           71       (AD7)PA7   1
+         XIOH          9        9          1
+
+PB0      IC3           19       (SS/PCINT0)PB0 1
+         XIOL          1        1          1
+
+PB1      IC3           20       (SCK/PCINT1)PB1 1
+         ICSP          3        3          1
+         XIOL          2        2          1
+
+PB2      IC3           21       (MOSI/PCINT2)PB2 1
+         ICSP          4        4          1
+         XIOL          3        3          1
+
+PB3      IC3           22       (MISO/PCINT3)PB3 1
+         ICSP          1        1          1
+         XIOL          4        4          1
+
+PB4      IC3           23       (OC2A/PCINT4)PB4 1
+         PWMH          3        3          1
+
+PB5      IC3           24       (OC1A/PCINT5)PB5 1
+         PWMH          4        4          1
+
+PB6      IC3           25       (OC1B/PCINT6)PB6 1
+         PWMH          5        5          1
+
+PB7      IC3           26       (OC0A/OC1C/PCINT7)PB7 1
+         PWMH          6        6          1
+         RN3           5        2          1
+
+PC0      IC3           53       (A8)PC0    1
+         XIOH          1        1          1
+
+PC1      IC3           54       (A9)PC1    1
+         XIOH          2        2          1
+
+PC2      IC3           55       (A10)PC2   1
+         XIOH          3        3          1
+
+PC3      IC3           56       (A11)PC3   1
+         XIOH          4        4          1
+
+PC4      IC3           57       (A12)PC4   1
+         XIOH          5        5          1
+
+PC5      IC3           58       (A13)PC5   1
+         XIOH          6        6          1
+
+PC6      IC3           59       (A14)PC6   1
+         XIOH          7        7          1
+
+PC7      IC3           60       (A15)PC7   1
+         XIOH          8        8          1
+
+PD7      IC3           50       (T0)PD7    1
+         XIOL          16       16         1
+
+PE0      IC3           2        (RXD0/PCIN8)PE0 1
+         PWML          1        1          1
+         RN4           2        1          1
+
+PE1      IC3           3        (TXD0)PE1  1
+         PWML          2        2          1
+         RN4           1        1          1
+
+PE3      IC3           5        (OC3A/AIN1)PE3 1
+         PWML          6        6          1
+
+PE4      IC3           6        (OC3B/INT4)PE4 1
+         PWML          3        3          1
+
+PE5      IC3           7        (OC3C/INT5)PE5 1
+         PWML          4        4          1
+
+PG0      IC3           51       (WR)PG0    1
+         XIOL          13       13         1
+
+PG1      IC3           52       (RD)PG1    1
+         XIOL          14       14         1
+
+PG2      IC3           70       (ALE)PG2   1
+         XIOL          15       15         1
+
+PG5      IC3           1        (OC0B)PG5  1
+         PWML          5        5          1
+
+PH3      IC3           15       PH3(OC4A)  1
+         PWML          7        7          1
+
+PH4      IC3           16       PH4(OC4B)  1
+         PWML          8        8          1
+
+PH5      IC3           17       PH5(OC4C)  1
+         PWMH          1        1          1
+
+PH6      IC3           18       PH6(OC2B)  1
+         PWMH          2        2          1
+
+PL0      IC3           35       PL0(ICP4)  1
+         XIOL          5        5          1
+
+PL1      IC3           36       PL1(ICP5)  1
+         XIOL          6        6          1
+
+PL2      IC3           37       PL2(T5)    1
+         XIOL          7        7          1
+
+PL3      IC3           38       PL3(OC5A)  1
+         XIOL          8        8          1
+
+PL4      IC3           39       PL4(OC5B)  1
+         XIOL          9        9          1
+
+PL5      IC3           40       PL5(OC5C)  1
+         XIOL          10       10         1
+
+PL6      IC3           41       PL6        1
+         XIOL          11       11         1
+
+PL7      IC3           42       PL7        1
+         XIOL          12       12         1
+
+PWRIN    D1            A        A          1
+         X1            2        2          1
+
+RD+      IC4           29       D+         1
+         RN2           4        1          1
+
+RD-      IC4           30       D-         1
+         RN2           1        1          1
+
+RESET    C1            1        1          1
+         C7            2        2          1
+         IC3           30       RESET      1
+         ICSP          5        5          1
+         POWER         1        1          1
+         RESET         3        3          1
+         RESET         4        4          1
+         RESET-EN      1        1          1
+         RESET-EN      2        2          1
+         RN1           1        1          1
+
+RESET2   IC4           24       RESET(PC1/DW) 1
+         ICSP1         5        5          1
+         RN5           8        2          1
+
+RXD1     COMMUNICATION 3        3          1
+         IC3           45       (RXD1/INT2)PD2 1
+
+RXD2     COMMUNICATION 5        5          1
+         IC3           12       PH0(RXD2)  1
+
+RXD3     COMMUNICATION 7        7          1
+         IC3           63       PJ0(RXD3/PCINT9) 1
+
+RXL      IC4           10       (INT5/AIN3)PD4 1
+         RX            C        C          1
+
+SCK2     IC4           15       (SCLK/PCINT1)PB1 1
+         ICSP1         3        3          1
+
+SCL      COMMUNICATION 1        1          1
+         IC3           43       (SCL/INT0)PD0 1
+         RN1           2        1          1
+
+SDA      COMMUNICATION 2        2          1
+         IC3           44       (SDA/INT1)PD1 1
+         RN1           3        1          1
+
+TXD1     COMMUNICATION 4        4          1
+         IC3           46       (TXD1/INT3)PD3 1
+
+TXD2     COMMUNICATION 6        6          1
+         IC3           13       PH1(TXD2)  1
+
+TXD3     COMMUNICATION 8        8          1
+         IC3           64       PJ1(TXD3/PCINT10) 1
+
+TXL      IC4           11       (XCK/AIN4/PCINT12)PD5 1
+         TX            C        C          1
+
+UGND     C10           2        2          1
+         GROUND        1        1          1
+         IC4           28       UGND       1
+         L1            1        1          1
+         X2            4        4          1
+
+USBVCC   C8            1        1          1
+         F1            1        1          1
+         IC4           31       UVCC       1
+         T2            1        D          1
+
+USHIELD  L1            2        2          1
+         X2            P$1      P$1        1
+         X2            P$2      P$2        1
+         Z1            1        1          1
+         Z2            1        1          1
+
+VIN      C2            1        1          1
+         D1            C        C          1
+         IC1           3        IN         1
+         IC2           3        VI         1
+         PC1           +        +          1
+         POWER         6        6          1
+         RN5           6        2          1
+
+VUCAP    C10           1        1          1
+         IC4           27       UCAP       1
+
+XT1      C16           1        1          1
+         Q1            2        2          1
+         R2            1        1          1
+         R4            2        2          1
+         Y2            3        3          1
+
+XT1R     IC4           1        XTAL1      1
+         R4            1        1          1
+
+XT2      C17           1        1          1
+         IC4           2        XTAL2(PC0) 1
+         Q1            1        1          1
+         R2            2        2          1
+         Y2            1        1          1
+
+XTAL1    C14           2        2          1
+         Q2            2        2          1
+         R1            1        1          1
+         R3            2        2          1
+         Y1            3        3          1
+
+XTAL1R   IC3           34       XTAL1      1
+         R3            1        1          1
+
+XTAL2    C15           2        2          1
+         IC3           33       XTAL2      1
+         Q2            1        1          1
+         R1            2        2          1
+         Y1            1        1          1
+
+XVCC     F1            2        2          1
+         X2            1        1          1
+

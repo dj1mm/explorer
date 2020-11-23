@@ -1,0 +1,152 @@
+Netlist
+
+Exported from base.sch at 21/11/2020 12:47
+
+EAGLE Version 9.6.2 Copyright (c) 1988-2020 Autodesk, Inc.
+
+Net      Part     Pad      Pin        Sheet
+
+3V3      SW1      CH1A     CH1A       1
+         SW1      CH2A     CH2A       1
+         U2       29       3V3        1
+
+5V       SW1      CH1B     CH1B       1
+         SW1      CH2B     CH2B       1
+         U2       28       5V         1
+
+A0       J9       1        1          1
+         U2       19       PC0/AD0/D14 1
+
+A1       J10      1        1          1
+         J9       2        2          1
+         U2       20       PC1/AD1/D15 1
+
+A2       J10      2        2          1
+         J11      1        1          1
+         U2       21       PC2/AD2/D16 1
+
+A3       J11      2        2          1
+         J12      1        1          1
+         U2       22       PC3/AD3/D17 1
+
+A4       J12      2        2          1
+         P1       1        1          1
+         U2       23       PC4/AD4/D18/SDA 1
+
+A5       P2       2        2          1
+         U2       24       PC5/AD5/D19/SCL 1
+
+AREF     U2       16       AREF       1
+
+D0       J1       1        1          1
+         U2       1        PD0/D0/RX  1
+
+D1       J1       2        2          1
+         U2       2        PD1/D1/TX  1
+
+D2       J2       1        1          1
+         U2       3        PD2/D2/INT0 1
+
+D3       J2       2        2          1
+         J3       1        1          1
+         U2       4        PD3/D3/INT1/PWM 1
+
+D4       J3       2        2          1
+         J4       1        1          1
+         U2       5        PD4/D4     1
+
+D5       J4       2        2          1
+         J5       1        1          1
+         U2       6        PD5/D5/PWM 1
+
+D6       J5       2        2          1
+         J6       1        1          1
+         U2       7        PD6/D6/PWM 1
+
+D7       J6       2        2          1
+         J7       1        1          1
+         U2       8        PD7/D7     1
+
+D8       J7       2        2          1
+         J8       1        1          1
+         U2       9        PB0/D8     1
+
+D9       J8       2        2          1
+         U2       10       PB1/D9/PWM 1
+
+D10      U2       11       PB2/D10/SS/PWM 1
+
+D11      U2       12       PB3/D11/MOSI/PWM 1
+
+D12      U2       13       PB4/D12/MISO 1
+
+D13      U2       14       PB5/D13/SCK 1
+
+GND      J1       4        4          1
+         J10      4        4          1
+         J11      4        4          1
+         J12      4        4          1
+         J13      4        4          1
+         J14      4        4          1
+         J15      4        4          1
+         J16      4        4          1
+         J2       4        4          1
+         J3       4        4          1
+         J4       4        4          1
+         J5       4        4          1
+         J6       4        4          1
+         J7       4        4          1
+         J8       4        4          1
+         J9       4        4          1
+         PWR      K        -          1
+         RST      P$2      2          1
+         U2       15       GND        1
+         U2       26       GND        1
+         U2       27       GND        1
+
+IOREF    U2       31       ADC7       1
+
+N$1      PWR      A        +          1
+         R1       2        2          1
+
+RST      R2       2        2          1
+         RST      P$1      1          1
+         U2       30       RESET      1
+
+SCL      J13      1        1          1
+         J14      1        1          1
+         J15      1        1          1
+         J16      1        1          1
+         P2       1        1          1
+         U2       18       SCL        1
+
+SDA      J13      2        2          1
+         J14      2        2          1
+         J15      2        2          1
+         J16      2        2          1
+         P1       2        2          1
+         U2       17       SDA        1
+
+VCC      J1       3        3          1
+         J10      3        3          1
+         J11      3        3          1
+         J12      3        3          1
+         J13      3        3          1
+         J14      3        3          1
+         J15      3        3          1
+         J16      3        3          1
+         J2       3        3          1
+         J3       3        3          1
+         J4       3        3          1
+         J5       3        3          1
+         J6       3        3          1
+         J7       3        3          1
+         J8       3        3          1
+         J9       3        3          1
+         R1       1        1          1
+         R2       1        1          1
+         SW1      COM1     COM1       1
+         SW1      COM2     COM2       1
+
+VIN      U2       25       VIN        1
+

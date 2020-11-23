@@ -1,0 +1,34 @@
+Partlist
+
+Exported from base.sch at 21/11/2020 12:48
+
+EAGLE Version 9.6.2 Copyright (c) 1988-2020 Autodesk, Inc.
+
+Assembly variant: 
+
+Part     Value                       Device             Package                     Library   Sheet
+
+J1       D0                          TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J2       D2                          TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J3       D3                          TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J4       D4                          TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J5       D5                          TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J6       D6                          TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J7       D7                          TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J8       D8                          TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J9       A0                          TWIG-4P-2.0'90D'   4P-2.0-90D                  Connector 1
+J10      A1                          TWIG-4P-2.0'90D'   4P-2.0-90D                  Connector 1
+J11      A2                          TWIG-4P-2.0'90D'   4P-2.0-90D                  Connector 1
+J12      A3                          TWIG-4P-2.0'90D'   4P-2.0-90D                  Connector 1
+J13      IIC                         TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J14      IIC                         TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J15      IIC                         TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+J16      IIC                         TWIG-4P-2.0-2.0    4P-2.0                      Connector 1
+P1       DNP                         PAD-JUMPER-2P      2P-SMD-1.78X1.27            Discrete  1
+P2       DNP                         PAD-JUMPER-2P      2P-SMD-1.78X1.27            Discrete  1
+PWR      GREEN                       LED-3MM            LED-2P-2.54-3MM             Discrete  1
+R1       1k                          R-0603             R0603                       Discrete  1
+R2       1k                          R-0603             R0603                       Discrete  1
+RST      BOTTON-2P-DP                BOTTON-2P-90       2P-7.62X3.56-90D            Discrete  1
+SW1                                  SWITCH-2CH-6P'90D' 6P-2CH-2.5-9.1X3.5X3.2H-90D Discrete  1
+U2       DIP Long Blue Female Header ARDUINO-38P        ARDUINO-38P                 moudle    1
