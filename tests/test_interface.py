@@ -3,7 +3,7 @@
 from explorer import *
 
 
-def main():
+def test_main():
 
     # Create system
     my_system = System()
@@ -67,9 +67,10 @@ def main():
 
     base_headers.connect(mega_headers)
 
-    # Dump the whole thing to stdout
-    Dump(my_system)
+    assert len(base._interfaces) == 1
+    assert len(mega._interfaces) == 1
+    assert base.get_interface("base_headers") == base._interfaces[0]
+    assert mega.get_interface("mega_headers") == mega._interfaces[0]
+    assert base._interfaces[0].other == mega._interfaces[0]
+    assert mega._interfaces[0].other == base._interfaces[0]
 
-
-if __name__ == "__main__":
-    main()

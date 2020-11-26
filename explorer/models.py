@@ -93,7 +93,7 @@ class Interface:
 
         self._parent: Board | None           = None
         self._other: Interface | None        = None
-        self._outer_pins: dict[str,OuterPin] = dict()
+        self._pins: list[OuterPin]           = list()
 
     @property
     def name(self):
@@ -108,20 +108,18 @@ class Interface:
     def other(self):
         return self._other
 
-    def add_pin(self, number: str, name: str, signal: Signal | None):
-        if name in self._outer_pins: raise RuntimeError(f"Redefinition of interface.{name}")
-        if signal is not None and signal.parent != self.parent: raise RuntimeError("signal and interface are on different board")
+    def add_pin(self, pin: OuterPin):
+        if pin.parent is None: raise RuntimeError("pin does not belong to a valid component")
+        if pin.parent.parent is None or pin.parent.parent is not self.parent: raise RuntimeError("component and interface are on different board")
+        if self in pin.interfaces: raise RuntimeError("pin already belongs to this interface")
+        if self.other is not None: raise RuntimeError("cannot add pin to already connected interface")
 
-        p = OuterPin(number, name, self)
+        self._pins.append(pin)
+        pin._interfaces.append(self)
 
-        self._outer_pins[number] = p
-
-        if signal is not None:
-            signal.connect(p)
-
-    def get_pin(self, number: str):
-        if number not in self._outer_pins: raise RuntimeError(f"interface pin {number} not found")
-        return self._outer_pins[number]
+    @property
+    def pins(self):
+        return self._pins
 
     def connect(self, other: Interface):
         if self.parent is None: raise RuntimeError("interface malformed")
@@ -129,7 +127,7 @@ class Interface:
 
         if self._other is not None: raise RuntimeError(f"interface {self.name} is already connected")
         if other._other is not None: raise RuntimeError(f"interface {other.name} is already connected")
-        if set(self._outer_pins.keys()) != set(other._outer_pins.keys()): raise RuntimeError("interface do not match")
+        if len(self._pins) != len(other._pins): raise RuntimeError("interface do not match")
 
         self._other = other
         other._other = self
@@ -180,10 +178,11 @@ class OuterPin:
 
     Same for interfaces. Each interface consists of several outerpins.
     """
-    def __init__(self, number: str, name: str, parent: Interface | Component) -> None:
+    def __init__(self, number: str, name: str, parent: Component) -> None:
         self._number = number
         self._name = name
         self._parent = parent
+        self._interfaces: list[Interface] = []
 
         self._signal: Signal | None = None
 
@@ -198,6 +197,10 @@ class OuterPin:
     @property
     def parent(self):
         return self._parent
+
+    @property
+    def interfaces(self):
+        return self._interfaces
 
     @property
     def signal(self):
@@ -351,15 +354,13 @@ class Dump:
         result += [f"{self.indentation()}other&: {inst.other}"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
 
-        if len(inst._outer_pins) == 0:
-            result += [f"{self.indentation()}outer_pins: {{}}"]
+        if len(inst._pins) == 0:
+            result += [f"{self.indentation()}pins: []"]
         else:
-            result += [f"{self.indentation()}outer_pins:"]
-        for pin in inst._outer_pins:
+            result += [f"{self.indentation()}pins:"]
+        for pin in inst._pins:
             with self.indent(True):
-                result += [f"{self.title()}{pin} =>"]
-                with self.indent():
-                    result += self.dump(inst._outer_pins[pin])
+                result += [f"{self.title()}{pin}"]
 
         return result
 
@@ -385,6 +386,14 @@ class Dump:
         result += [f"{self.title()}OuterPin {hex(id(inst))} number: {inst.number} name: {inst.name}"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
         result += [f"{self.indentation()}signal&: {inst._signal}"]
+
+        if len(inst._interfaces) == 0:
+            result += [f"{self.indentation()}interfaces&: []"]
+        else:
+            result += [f"{self.indentation()}interfaces&:"]
+        for interface in inst._interfaces:
+            with self.indent(True):
+                result += [f"{self.title()}{interface}"]
 
         return result
 
@@ -416,4 +425,4 @@ class Dump:
                 result += [f"{self.title()}{signal}"]
 
         return result
-        
+
