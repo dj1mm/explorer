@@ -17,6 +17,10 @@ class System:
                 return board
         raise RuntimeError(f"board {name} not found")
 
+    @property
+    def boards(self):
+        return self._boards
+
     def __str__(self) -> str:
         return f"System {hex(id(self))}"
 
@@ -49,6 +53,10 @@ class Board:
                 return component
         raise RuntimeError(f"component {name} not found")
 
+    @property
+    def components(self):
+        return self._components
+
     def add_signal(self, signal: Signal):
         if signal._parent is self: raise RuntimeError(f"signal {signal.name} is already part of board")
         if signal._parent is not None: raise RuntimeError(f"signal {signal.name} is already part of another board")
@@ -60,6 +68,10 @@ class Board:
             if signal.name == name:
                 return signal
         raise RuntimeError(f"signal {name} not found")
+
+    @property
+    def signals(self):
+        return self._signals
 
     def add_interface(self, interface: Interface):
         if interface._parent is self: raise RuntimeError(f"interface {interface.name} is already part of board")
@@ -73,8 +85,16 @@ class Board:
                 return interface
         raise RuntimeError(f"interface {name} not found")
 
+    @property
+    def interfaces(self):
+        return self._interfaces
+
     def add_dummypin(self, dummypin: DummyPin):
         self._dummypins.append(dummypin)
+
+    @property
+    def dummypins(self):
+        return self._dummypins
 
     def __str__(self) -> str:
         return f"Board {hex(id(self))}"
@@ -253,6 +273,9 @@ class Signal:
 
             self.parent.add_dummypin(dummy_pin)
 
+    def __repr__(self) -> str:
+        return f"Signal {self.parent.refdes}.{self.name}"
+
     def __str__(self) -> str:
         return f"Signal {hex(id(self))}"
 
@@ -260,6 +283,10 @@ class DummyPin:
     def __init__(self) -> None:
         super().__init__()
         self._signals: list[Signal] = list()
+
+    @property
+    def signals(self):
+        return self._signals
 
     def __str__(self) -> str:
         return f"DummyPin {hex(id(self))}"
@@ -312,7 +339,7 @@ class Dump:
 
     def dump_board(self, inst: Board):
         result = []
-        result += [f"{self.title()}Board {hex(id(inst))} name: {inst.name} refdes: {inst.refdes}"]
+        result += [f"{self.title()}Board {hex(id(inst))} name: '{inst.name}' refdes: '{inst.refdes}'"]
 
         if len(inst._components) == 0:
             result += [f"{self.indentation()}components: []"]
@@ -350,7 +377,7 @@ class Dump:
 
     def dump_interface(self, inst: Interface):
         result = []
-        result += [f"{self.title()}Interface {hex(id(inst))} name: {inst.name}"]
+        result += [f"{self.title()}Interface {hex(id(inst))} name: '{inst.name}'"]
         result += [f"{self.indentation()}other&: {inst.other}"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
 
@@ -366,7 +393,7 @@ class Dump:
 
     def dump_component(self, inst):
         result = []
-        result += [f"{self.title()}Component {hex(id(inst))} refdes: {inst.refdes} package: {inst.package}"]
+        result += [f"{self.title()}Component {hex(id(inst))} refdes: '{inst.refdes}' package: '{inst.package}'"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
 
         if len(inst._outer_pins) == 0:
@@ -375,7 +402,7 @@ class Dump:
             result += [f"{self.indentation()}outer_pins:"]
         for pin in inst._outer_pins:
             with self.indent(True):
-                result += [f"{self.title()}{pin} =>"]
+                result += [f"{self.title()}'{pin}' =>"]
                 with self.indent():
                     result += self.dump(inst._outer_pins[pin])
 
@@ -399,7 +426,7 @@ class Dump:
 
     def dump_signal(self, inst):
         result = []
-        result += [f"{self.title()}Signal {hex(id(inst))} name: {inst.name}"]
+        result += [f"{self.title()}Signal {hex(id(inst))} name: '{inst.name}'"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
 
         if len(inst._pins) == 0:

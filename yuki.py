@@ -68,8 +68,9 @@ def main():
     base_headers.connect(mega_headers)
 
     # Dump the whole thing to stdout
-    Dump(my_system)
+    # Dump(my_system)
 
+    write_json(my_system, 'out.json')
 
 if __name__ == "__main__":
     main()
