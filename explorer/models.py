@@ -5,7 +5,8 @@ from contextlib import contextmanager
 
 class System:
     """ system consists of one or more boards interconnected together."""
-    def __init__(self) -> None:
+    def __init__(self, name = "Unnamed system") -> None:
+        self.name = name
         self._boards: list[Board] = list()
 
     def add_board(self, board: Board):

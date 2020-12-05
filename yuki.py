@@ -70,7 +70,7 @@ def main():
     # Dump the whole thing to stdout
     # Dump(my_system)
 
-    write_json(my_system, 'out.json')
+    write_html(my_system, 'out')
 
 if __name__ == "__main__":
     main()

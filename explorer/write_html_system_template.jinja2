@@ -1,0 +1,32 @@
+<html>
+
+<head>
+    <title>Exploring {{ system.name }}</title>
+</head>
+<body>
+    <h1>{{ system.name }}</h1>
+
+    <h2>Boards</h2>
+    <ul>
+        {% for brd in system.boards %}
+        <li>
+        <a href="{{ brd.refdes|lower|urlencode }}.html">{{ brd.refdes }}</a>
+
+        {% if brd.interfaces != [] %}
+        <ul>
+            {% for itf in brd.interfaces %}
+            <li>
+                <a href="{{ brd.refdes|lower|urlencode }}.html#brd-{{ itf.parent.refdes|lower|urlencode }}-itf-{{ itf.name|lower|urlencode }}">{{ itf.name }}</a>
+                {% if itf.other != None %}
+                (connected to
+                <a href="{{ itf.other.parent.refdes|lower|urlencode }}.html#brd-{{ itf.other.parent.refdes|lower|urlencode }}-itf-{{ itf.other.name|lower|urlencode }}">{% if itf.other.parent != brd %}{{ itf.other.parent.refdes }}.{% endif %}{{ itf.other.name }}</a>)
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        </li>
+        {% endif %}
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<html>
+
+<head>
+    <title>Exploring {{ board.refdes }} - {{ board.name }}</title>
+</head>
+<body>
+
+    <h1 id="brd-{{ board.refdes|lower|urlencode }}">{{ board.refdes }}</h1>
+    <p>{{ board.name }}</p>
+    <h2 id="brd-{{ board.refdes|lower|urlencode }}-coms">Components</h2>
+    <ul>
+        {% for com in board.components %}
+
+        <li id="brd-{{ board.refdes|lower|urlencode }}-com-{{ com.refdes|lower|urlencode }}">
+            <p>{{ com.refdes }}</p>
+            <table>
+                <thead>
+                    <tr><td>Pin name</td><td>Signal</td></tr>
+                </thead>
+                <tbody>
+                    {% for key in com._outer_pins %}
+                    {% set pin = com._outer_pins[key] %}
+                    <tr id="brd-{{ board.refdes|lower|urlencode }}-com-{{ com.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">
+                        <td>{{ pin.name }}</a></td>
+                        <td>
+                            <a href="#brd-{{ board.refdes|lower|urlencode }}-sig-{{ pin.signal.name|lower|urlencode }}">{{ pin.signal.name }}</a>
+                            {% if pin.interfaces|length != 0 %}
+                            and
+                            {% for iface in pin.interfaces %}
+                            {% set idx = iface._pins.index(pin) %}
+                            <a href="#brd-{{ board.refdes|lower|urlencode }}-itf-{{ iface.name|lower|urlencode }}-idx-{{ idx }}">{{ iface.name }}.{{ idx }}</a>
+                            {% endfor %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p>Package: {{ com.package }}</a></p>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2 id="brd-{{ board.refdes|lower|urlencode }}-sigs">Signals</h2>
+
+    {% if board.signals|length == 0%}
+    None
+    {% else %}
+    <ul>
+        {% for sig in board.signals %}
+
+        <li id="brd-{{ board.refdes|lower|urlencode }}-sig-{{ sig.name|lower|urlencode }}">
+            <p>{{ sig.name }}</p>
+            <p>
+                {% set dummy_pins = [] %}
+                {% set pins_connected_to_interfaces = [] %}
+
+                <p>Connects these pins: 
+                {% for pin in sig._pins %}
+                {% if False %}
+                    {{ dummy_pins.push(pin) }}
+                {% else %}
+                    {% for iface in pin.interfaces if (iface != None and iface.other != None) %}
+                    {{ pins_connected_to_interfaces.append(pin) or "" }}
+                    <a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">{{ pin.parent.refdes}}.{{ pin.name }}</a>
+                    {% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% endif %}
+                {% endfor %}
+                </p>
+
+                {% if pins_connected_to_interfaces != [] %}
+                {% set processed_signals = [] %}
+                <p>
+                Also electrically connected to:
+                {% for pin in pins_connected_to_interfaces %}
+
+                    {% for iface in pin.interfaces if iface.other != None %}
+                        {% set idx = iface._pins.index(pin) %}
+                        {% set rhs = iface.other._pins[idx] %}
+                        {% if rhs.signal not in processed_signals %}
+                        {{ processed_signals.append(rhs.signal) or "" }}
+                        <a href="{{ rhs.parent.parent.refdes|lower|urlencode }}.html#brd-{{ rhs.parent.parent.refdes|lower|urlencode }}-sig-{{ rhs.signal.name|lower|urlencode }}">
+                            {% if rhs.parent.parent != board %}{{ rhs.parent.parent.refdes }}.{% endif %}{{ rhs.signal.name }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                {% endif %}
+            </p>
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2 id="brd-{{ board.refdes|lower|urlencode }}-itfs">Interfaces</h2>
+    {% if board.interfaces|length == 0%}
+    None
+    {% else %}
+    <ul>
+        {% for itf in board.interfaces %}
+
+        <li id="brd-{{ board.refdes|lower|urlencode }}-itf-{{ itf.name|lower|urlencode }}">
+            <p>{{ itf.name }}</p>
+            <p>Connected to:
+                {% if itf.other == None %}
+                    nothing
+                {% else %}
+                    <a href="{{ itf.other.parent.refdes}}.html#brd-{{ itf.other.parent.refdes|lower|urlencode }}-itf-{{ itf.other.name|lower|urlencode }}">
+                        {% if brd != itf.other.parent %}{{ itf.other.parent.refdes }}.{% endif %}{{ itf.other.name }}
+                    </a>
+                {% endif %}
+            </p>
+            <table>
+                <thead>
+                    <tr><th>This signal</th><th>This pin</th><th>Index</th><th>Other pin</th><th>Other signal</th></tr>
+                </thead>
+                <tbody>
+                    {% for pin in itf._pins %}
+                    <tr id="brd-{{ board.refdes|lower|urlencode }}-itf-{{ itf.name|lower|urlencode }}-idx-{{ loop.index0 }}">
+                        <td><a href="#brd-{{ board.refdes|lower|urlencode }}-sig-{{ pin.signal.name|lower|urlencode }}">
+                            {{ pin.signal.name }}
+                        </a></td>
+                        <td><a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">
+                            {{ pin.parent.refdes }}.{{ pin.name }}
+                        </a></td>
+                        {% if itf.other == None %}
+                        <td>{{ loop.index0 }}</td><td colspan=2>nada</td>
+                        {% else %}
+                        <td><a href="{{ itf.other.parent.refdes|lower|urlencode }}.html#brd-{{ itf.other._pins[loop.index0].parent.parent.refdes|lower|urlencode }}-itf-{{ itf.other.name|lower|urlencode }}-idx-{{ loop.index0 }}">
+                            {{ loop.index0 }}
+                        </a></td>
+                        <td><a href="{{ itf.other.parent.refdes|lower|urlencode }}.html#brd-{{ itf.other._pins[loop.index0].parent.parent.refdes|lower|urlencode }}-com-{{ itf.other._pins[loop.index0].parent.refdes|lower|urlencode }}-pin-{{ itf.other._pins[loop.index0].name|lower|urlencode }}">
+                            {% if itf.other._pins[loop.index0].parent.parent != board %}{{ itf.other._pins[loop.index0].parent.parent.refdes }}{% endif %}
+                            {{ itf.other._pins[loop.index0].parent.refdes }}.{{ itf.other._pins[loop.index0].name }}
+                        </a></td>
+                        <td><a href="{{ itf.other.parent.refdes|lower|urlencode }}.html#brd-{{ itf.other._pins[loop.index0].parent.parent.refdes|lower|urlencode }}-sig-{{ itf.other._pins[loop.index0].signal.name|lower|urlencode }}">
+                            {{ itf.other._pins[loop.index0].signal.name }}
+                        </a></td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+</body>
+</html>
