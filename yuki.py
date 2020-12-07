@@ -1,9 +1,19 @@
 #!/usr/bin/python3
 
+"""
+Hello
+"""
+
+import tracemalloc
+
 from explorer import *
 
 
 def main():
+    tracemalloc.start()
+
+    from datetime import datetime
+    startTime = datetime.now()
 
     # Create system
     my_system = System()
@@ -71,6 +81,10 @@ def main():
     # Dump(my_system)
 
     write_html(my_system, 'out')
+
+    current, peak = tracemalloc.get_traced_memory()
+    print(f"time: {datetime.now()-startTime}; MEM: {current / 10**6}MB; Peak: {peak / 10**6}MB")
+    tracemalloc.stop()
 
 if __name__ == "__main__":
     main()
