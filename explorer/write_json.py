@@ -51,7 +51,7 @@ class Serialize:
                 res["signal"] = id(obj.signal)
             res["interfaces"] = []
             for iface in obj.interfaces:
-                res["interface"] += [id(iface)]
+                res["interfaces"] += [id(iface)]
             self.result[id(obj)] = res
 
         if isinstance(obj, Signal):
@@ -74,6 +74,6 @@ def write_json(system: System, file: str):
     with open(file, "w") as f:
         for model in depth_first(system):
             serialize_and_add_id(model)
-        f.write(json.dumps(serialize_and_add_id.result))
+        f.write(json.dumps({"models": serialize_and_add_id.result, "root": id(system)}))
 
 

@@ -37,7 +37,7 @@ def _depth_first(obj: Any):
 
     if isinstance(obj, Component):
         yield obj
-        yield from depth_first(obj._outer_pins)
+        yield from depth_first(obj._outer_pins.values())
 
     if isinstance(obj, OuterPin):
         yield obj
