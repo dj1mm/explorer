@@ -128,7 +128,12 @@ class Parser:
             comp.add_pin(pin)
 
             if val['Net'] == '*** unconnected ***':
-                pass
+                try:
+                    nc = self.board.get_signal('NC')
+                except:
+                    nc = Signal('NC')
+                    self.board.add_signal(nc)
+                nc.connect(comp.get_pin(val['Pad']))
 
 
     def parse_partlist_file(self):

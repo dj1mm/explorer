@@ -331,7 +331,12 @@ class SignalMap:
             for signal in board.signals:
                 sigmap.find(signal)
             for dummypin in board.dummypins:
+                # Note signal NC is a special signal. Any pins connected to the
+                # NC signal are 'No connect', ie are open. So, dont even try to
+                # merge NC signals with other signals if any
                 for sig in dummypin.signals:
+                    if (sig.name == 'NC') ^ (dummypin.signals[0].name == 'NC'):
+                        continue
                     sigmap.union(sig, dummypin.signals[0])
             for interface in board.interfaces:
                 if interface.other is None:

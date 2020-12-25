@@ -16,6 +16,7 @@ class Serialize:
             for net in self.sigmap.nets.values():
                 res["nets"] += [id(net)]
             self.result[id(obj)] = res
+            self.result['root'] = id(obj)
 
             for net in self.sigmap.nets.values():
                 self.__call__(net)
@@ -74,6 +75,6 @@ def write_json(system: System, file: str):
     with open(file, "w") as f:
         for model in depth_first(system):
             serialize_and_add_id(model)
-        f.write(json.dumps({"models": serialize_and_add_id.result, "root": id(system)}))
+        f.write(json.dumps({"models": serialize_and_add_id.result}))
 
 
