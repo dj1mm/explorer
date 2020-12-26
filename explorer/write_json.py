@@ -22,7 +22,7 @@ class Serialize:
                 self.__call__(net)
 
         if isinstance(obj, Board):
-            res = {"id": id(obj), "kind": "board", "name": obj.name, "refdes": obj.refdes, "components": [], "signals": [], "interfaces": []}
+            res = {"id": id(obj), "kind": "board", "name": obj.name, "parent": id(obj.parent), "refdes": obj.refdes, "components": [], "signals": [], "interfaces": []}
             for com in obj.components:
                 res["components"] += [id(com)]
             for sig in obj.signals:

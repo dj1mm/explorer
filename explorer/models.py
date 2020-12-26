@@ -11,7 +11,10 @@ class System:
         self._boards: list[Board] = list()
 
     def add_board(self, board: Board):
+        if board._parent is self: raise RuntimeError(f"board {board.refdes} is already part of system")
+        if board._parent is not None: raise RuntimeError("board {board.refdes} is already part of a system")
         self._boards.append(board)
+        board._parent = self
 
     def get_board(self, name: str):
         for board in self._boards:
@@ -38,10 +41,16 @@ class Board:
     def __init__(self) -> None:
         self.name = ""
         self.refdes = ""
+        self._parent: System | None       = None
         self._components: list[Component] = list()
-        self._signals: list[Signal] = list()
+        self._signals: list[Signal]       = list()
         self._interfaces: list[Interface] = list()
-        self._dummypins: list[DummyPin] = list()
+        self._dummypins: list[DummyPin]   = list()
+
+    @property
+    def parent(self):
+        if self._parent is None: raise RuntimeError("board malformed")
+        return self._parent
 
     def add_component(self, component: Component):
         if component._parent is self: raise RuntimeError(f"component {component.refdes} is already part of board")
@@ -414,6 +423,7 @@ class Dump:
     def dump_board(self, inst: Board):
         result = []
         result += [f"{self.title()}Board {hex(id(inst))} name: '{inst.name}' refdes: '{inst.refdes}'"]
+        result += [f"{self.indentation()}parent&: {inst.parent}"]
 
         if len(inst._components) == 0:
             result += [f"{self.indentation()}components: []"]

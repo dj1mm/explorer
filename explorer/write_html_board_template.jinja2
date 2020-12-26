@@ -7,6 +7,7 @@
 
     <h1 id="brd-{{ board.refdes|lower|urlencode }}">{{ board.refdes }}</h1>
     <p>{{ board.name }}</p>
+    <p>Part of system: <a href="index.html">{{ board.parent.name }}</a></p>
     <h2 id="brd-{{ board.refdes|lower|urlencode }}-coms">Components</h2>
     <ul>
         {% for com in board.components %}
@@ -52,42 +53,26 @@
         <li id="brd-{{ board.refdes|lower|urlencode }}-sig-{{ sig.name|lower|urlencode }}">
             <p>{{ sig.name }}</p>
             <p>
-                {% set dummy_pins = [] %}
-                {% set pins_connected_to_interfaces = [] %}
-
                 <p>Connects these pins: 
                 {% for pin in sig._pins %}
-                {% if False %}
-                    {{ dummy_pins.push(pin) }}
-                {% else %}
-                    {% for iface in pin.interfaces if (iface != None and iface.other != None) %}
-                    {{ pins_connected_to_interfaces.append(pin) or "" }}
                     <a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">{{ pin.parent.refdes}}.{{ pin.name }}</a>
                     {% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                {% endif %}
                 {% endfor %}
                 </p>
 
-                {% if pins_connected_to_interfaces != [] %}
-                {% set processed_signals = [] %}
+                {% for signal in sigmap.resolved_net(sig).signals %}
+                {% if loop.first %}
                 <p>
                 Also electrically connected to:
-                {% for pin in pins_connected_to_interfaces %}
-
-                    {% for iface in pin.interfaces if iface.other != None %}
-                        {% set idx = iface._pins.index(pin) %}
-                        {% set rhs = iface.other._pins[idx] %}
-                        {% if rhs.signal not in processed_signals %}
-                        {{ processed_signals.append(rhs.signal) or "" }}
-                        <a href="{{ rhs.parent.parent.refdes|lower|urlencode }}.html#brd-{{ rhs.parent.parent.refdes|lower|urlencode }}-sig-{{ rhs.signal.name|lower|urlencode }}">
-                            {% if rhs.parent.parent != board %}{{ rhs.parent.parent.refdes }}.{% endif %}{{ rhs.signal.name }}
-                        </a>
-                        {% endif %}
-                    {% endfor %}
-                {% endfor %}
                 {% endif %}
-            </p>
+                    <a href="{{ signal.parent.refdes|lower|urlencode }}.html#brd-{{ signal.parent.refdes|lower|urlencode }}-sig-{{ signal.name|lower|urlencode }}">
+                        {% if signal.parent != board %}{{signal.parent.refdes }}.{% endif %}{{ signal.name }}
+                    </a>
+                    {% if not loop.last %}, {% endif %}
+                {% if loop.last %}
+                </p>
+                {% endif %}
+                {% endfor %}
             </p>
         </li>
         {% endfor %}
