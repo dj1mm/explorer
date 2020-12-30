@@ -8,6 +8,40 @@
     <h1 id="brd-{{ board.refdes|lower|urlencode }}">{{ board.refdes }}</h1>
     <p>{{ board.name }}</p>
     <p>Part of system: <a href="index.html">{{ board.parent.name }}</a></p>
+
+    <h2>Netlist view</h2>
+    <p>Netlist view from {{ board.refdes }}'s POV.</p>
+    {% set boards = [board] %}
+    <table>
+        <thead>
+            <tr>
+                <th>{{ board.refdes }}</th>
+            {% for brd in board.parent.boards if board != brd %}
+                {{ boards.append(brd) or '' }}
+                <th><a href="{{ brd.refdes|lower|urlencode }}.html">{{ brd.refdes }}</a></th>
+            {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for sig in board.signals %}
+        {% set net = sigmap.resolved_net(sig) %}
+        <tr id="net-{{ net.net_number }}">
+            {% for brd in boards %}
+            <td>
+            <p>
+                {% for signal in net._signals if brd == signal.parent %}
+                {% if not loop.first %}<br>{% endif %}
+                <a href="{{ signal.parent.refdes|lower|urlencode }}.html#brd-{{ signal.parent.refdes|lower|urlencode }}-sig-{{ signal.name|lower|urlencode }}">
+                    {{ signal.name }}
+                </a>
+                {% endfor %}
+            </p>
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
     <h2 id="brd-{{ board.refdes|lower|urlencode }}-coms">Components</h2>
     <ul>
         {% for com in board.components %}
@@ -16,23 +50,24 @@
             <p>{{ com.refdes }}</p>
             <table>
                 <thead>
-                    <tr><td>Pin name</td><td>Signal</td></tr>
+                    <tr><td>Pin number</td><td>Pin name</td><td>Signal</td><td>Part of interface</td></tr>
                 </thead>
                 <tbody>
-                    {% for key in com._outer_pins %}
-                    {% set pin = com._outer_pins[key] %}
+                    {% for key, pin in com._outer_pins.items() %}
                     <tr id="brd-{{ board.refdes|lower|urlencode }}-com-{{ com.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">
-                        <td>{{ pin.name }}</a></td>
+                        <td>{{ pin.number }}</td>
+                        <td>{{ pin.name }}</td>
                         <td>
                             <a href="#brd-{{ board.refdes|lower|urlencode }}-sig-{{ pin.signal.name|lower|urlencode }}">{{ pin.signal.name }}</a>
-                            {% if pin.interfaces|length != 0 %}
-                            and
+                        </td>
+                        {% if pin.interfaces|length != 0 %}
+                        <td>
                             {% for iface in pin.interfaces %}
                             {% set idx = iface._pins.index(pin) %}
                             <a href="#brd-{{ board.refdes|lower|urlencode }}-itf-{{ iface.name|lower|urlencode }}-idx-{{ idx }}">{{ iface.name }}.{{ idx }}</a>
                             {% endfor %}
-                            {% endif %}
                         </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -51,16 +86,16 @@
         {% for sig in board.signals %}
 
         <li id="brd-{{ board.refdes|lower|urlencode }}-sig-{{ sig.name|lower|urlencode }}">
-            <p>{{ sig.name }}</p>
+            <p>{{ sig.name }} <a href="#net-{{ sigmap.resolved_net(sig).net_number }}">(Reveal in netlist view)</a></p>
             <p>
                 <p>Connects these pins: 
                 {% for pin in sig._pins %}
-                    <a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">{{ pin.parent.refdes}}.{{ pin.name }}</a>
+                    <a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">{{ pin.parent.refdes }}.{{ pin.number }}</a>
                     {% if not loop.last %}, {% endif %}
                 {% endfor %}
                 </p>
 
-                {% for signal in sigmap.resolved_net(sig).signals %}
+                {#{% for signal in sigmap.resolved_signals(sig) %}
                 {% if loop.first %}
                 <p>
                 Also electrically connected to:
@@ -72,7 +107,7 @@
                 {% if loop.last %}
                 </p>
                 {% endif %}
-                {% endfor %}
+                {% endfor %}#}
             </p>
         </li>
         {% endfor %}

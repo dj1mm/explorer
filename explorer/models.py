@@ -355,6 +355,8 @@ class SignalMap:
                     rhs = interface.other.pins[i].signal
                     if lhs is None or rhs is None:
                         continue
+                    if (lhs.name == 'NC') ^ (rhs.name == 'NC'):
+                        continue
                     sigmap.union(lhs, rhs)
 
         net_number = 0
