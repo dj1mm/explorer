@@ -9,7 +9,7 @@ from explorer.models import *
 def write_html(system: System, folder: str):
 
     # look for files in the directory where write_html.py lives
-    loader = FileSystemLoader(Path(__file__).parent)
+    loader = FileSystemLoader(str(Path(__file__).parent)) # seems wsl need this
     env = Environment(loader=loader)
 
     sigmap = SignalMap(system)

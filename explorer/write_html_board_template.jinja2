@@ -12,6 +12,7 @@
     <h2>Netlist view</h2>
     <p>Netlist view from {{ board.refdes }}'s POV.</p>
     {% set boards = [board] %}
+    {% set writtenNets = [] %}
     <table>
         <thead>
             <tr>
@@ -25,6 +26,8 @@
         <tbody>
         {% for sig in board.signals %}
         {% set net = sigmap.resolved_net(sig) %}
+        {% if net not in writtenNets %}
+        {{ writtenNets.append(net) or '' }}
         <tr id="net-{{ net.net_number }}">
             {% for brd in boards %}
             <td>
@@ -39,6 +42,7 @@
             </td>
             {% endfor %}
         </tr>
+        {% endif %}
         {% endfor %}
         </tbody>
     </table>
@@ -90,8 +94,7 @@
             <p>
                 <p>Connects these pins: 
                 {% for pin in sig._pins %}
-                    <a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">{{ pin.parent.refdes }}.{{ pin.number }}</a>
-                    {% if not loop.last %}, {% endif %}
+                    <a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">{{ pin.parent.refdes }}.{{ pin.number }}</a>{% if not loop.last %}, {% endif %}
                 {% endfor %}
                 </p>
 
