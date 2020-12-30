@@ -16,7 +16,7 @@ def test_main():
     assert base.name == "base"
     assert base.refdes == "base"
     assert len(base._components) == 24
-    assert len(base._signals) == 31
+    assert len(base._signals) == 31 + 1
     assert len(base._interfaces) == 0
     assert len(base._dummypins) == 0
 

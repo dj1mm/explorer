@@ -16,7 +16,7 @@ def test_main():
     assert mega.name == "mega"
     assert mega.refdes == "mega"
     assert len(mega._components) == 68
-    assert len(mega._signals) == 108
+    assert len(mega._signals) == 108 + 1
     assert len(mega._interfaces) == 0
     assert len(mega._dummypins) == 0
 
