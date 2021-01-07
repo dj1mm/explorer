@@ -18,7 +18,6 @@ def test_main():
     assert len(base._components) == 24
     assert len(base._signals) == 31 + 1
     assert len(base._interfaces) == 0
-    assert len(base._dummypins) == 0
 
     # import io
     # from contextlib import redirect_stdout

@@ -9,11 +9,51 @@
     <p>{{ board.name }}</p>
     <p>Part of system: <a href="index.html">{{ board.parent.name }}</a></p>
 
-    <h2>Netlist view</h2>
+    <h2>Table of contents</h2>
+    <ul>
+        <li><a href="#brd-{{ board.refdes|lower|urlencode }}-pcbs">PCB summary</a></li>
+        <li><a href="#brd-{{ board.refdes|lower|urlencode }}-nets">Netlist view</a></li>
+        <li><a href="#brd-{{ board.refdes|lower|urlencode }}-coms">Components ({{ board.components|length }})</a></li>
+        <li><a href="#brd-{{ board.refdes|lower|urlencode }}-sigs">Signals ({{ board.signals|length }})</a></li>
+        <li><a href="#brd-{{ board.refdes|lower|urlencode }}-itfs">Interfaces ({{ board.interfaces|length }})</a></li>
+    </ul>
+
+    <h2 id="brd-{{ board.refdes|lower|urlencode }}-pcbs">PCB summary</h2>
+    <p>Components:</p>
+    <ul>
+        {% for com in board.components if com.type == 1 or (com.type == 3 and com._pins|length >= 60) %}
+        <li>
+            <a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ com.refdes|lower|urlencode }}">
+                {% if com.type == 1 %}Connector
+                {% elif com.type == 2 %}Discrete
+                {% elif com.type == 3 %}Chip
+                {% endif %}
+                {{ com.refdes }}
+            </a>
+        </li>
+        {% endfor %}
+        
+    </ul>
+    {% if board.interfaces|length != 0 %}
+    <p>Interfaces:</p>
+    <ul>
+        {% for itf in board.interfaces %}
+        <li>
+            <a href="{{ board.refdes|lower|urlencode }}.html#brd-{{ itf.parent.refdes|lower|urlencode }}-itf-{{ itf.name|lower|urlencode }}">{{ itf.name }}</a>
+            {% if itf.other != None %}
+            (connected to
+            <a href="{{ itf.other.parent.refdes|lower|urlencode }}.html#brd-{{ itf.other.parent.refdes|lower|urlencode }}-itf-{{ itf.other.name|lower|urlencode }}">{% if itf.other.parent != board %}{{ itf.other.parent.refdes }}.{% endif %}{{ itf.other.name }}</a>)
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2 id="brd-{{ board.refdes|lower|urlencode }}-nets">Netlist view</h2>
     <p>Netlist view from {{ board.refdes }}'s POV.</p>
     {% set boards = [board] %}
     {% set writtenNets = [] %}
-    <table>
+    <table border="1">
         <thead>
             <tr>
                 <th>{{ board.refdes }}</th>
@@ -47,19 +87,29 @@
         </tbody>
     </table>
     <h2 id="brd-{{ board.refdes|lower|urlencode }}-coms">Components</h2>
+    <p>{{ board.components|length }} components</p>
     <ul>
         {% for com in board.components %}
 
         <li id="brd-{{ board.refdes|lower|urlencode }}-com-{{ com.refdes|lower|urlencode }}">
             <p>{{ com.refdes }}</p>
-            <table>
+            <p>
+                Component type:
+                {% if com.type == 0 %}Default
+                {% elif com.type == 1 %}Connector
+                {% elif com.type == 2 %}Discrete
+                {% elif com.type == 3 %}Chip
+                {% else %}Unknown
+                {% endif %}
+            </p>
+            <table border="1">
                 <thead>
                     <tr><td>Pin number</td><td>Pin name</td><td>Signal</td><td>Part of interface</td></tr>
                 </thead>
                 <tbody>
                     {% for key, pin in com._outer_pins.items() %}
                     <tr id="brd-{{ board.refdes|lower|urlencode }}-com-{{ com.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">
-                        <td>{{ pin.number }}</td>
+                        <td>{{ com.refdes }}.{{ pin.number }}</td>
                         <td>{{ pin.name }}</td>
                         <td>
                             <a href="#brd-{{ board.refdes|lower|urlencode }}-sig-{{ pin.signal.name|lower|urlencode }}">{{ pin.signal.name }}</a>
@@ -77,11 +127,14 @@
                 </tbody>
             </table>
             <p>Package: {{ com.package }}</a></p>
+            <p>Signal model: {{ com.model }}</p>
+            <p>Ignore model: {{ com.ignore_model }}</p>
         </li>
         {% endfor %}
     </ul>
 
     <h2 id="brd-{{ board.refdes|lower|urlencode }}-sigs">Signals</h2>
+    <p>{{ board.signals|length }} signals</p>
 
     {% if board.signals|length == 0%}
     None
@@ -92,11 +145,18 @@
         <li id="brd-{{ board.refdes|lower|urlencode }}-sig-{{ sig.name|lower|urlencode }}">
             <p>{{ sig.name }} <a href="#net-{{ sigmap.resolved_net(sig).net_number }}">(Reveal in netlist view)</a></p>
             <p>
-                <p>Connects these pins: 
+                Signal type:
+                {% if sig.type == 0 %}Default
+                {% elif sig.type == 1 %}DC
+                {% elif sig.type == 2 %}NC
+                {% else %}Unknown
+                {% endif %}
+            </p>
+            <p>
+                Connects these pins: 
                 {% for pin in sig._pins %}
                     <a href="#brd-{{ board.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">{{ pin.parent.refdes }}.{{ pin.number }}</a>{% if not loop.last %}, {% endif %}
                 {% endfor %}
-                </p>
 
                 {#{% for signal in sigmap.resolved_signals(sig) %}
                 {% if loop.first %}
@@ -118,6 +178,7 @@
     {% endif %}
 
     <h2 id="brd-{{ board.refdes|lower|urlencode }}-itfs">Interfaces</h2>
+    <p>{{ board.interfaces|length }} interfaces</p>
     {% if board.interfaces|length == 0%}
     None
     {% else %}
@@ -135,7 +196,7 @@
                     </a>
                 {% endif %}
             </p>
-            <table>
+            <table border="1">
                 <thead>
                     <tr><th>This signal</th><th>This pin</th><th>Index</th><th>Other pin</th><th>Other signal</th></tr>
                 </thead>
@@ -155,7 +216,6 @@
                             {{ loop.index0 }}
                         </a></td>
                         <td><a href="{{ itf.other.parent.refdes|lower|urlencode }}.html#brd-{{ itf.other._pins[loop.index0].parent.parent.refdes|lower|urlencode }}-com-{{ itf.other._pins[loop.index0].parent.refdes|lower|urlencode }}-pin-{{ itf.other._pins[loop.index0].name|lower|urlencode }}">
-                            {% if itf.other._pins[loop.index0].parent.parent != board %}{{ itf.other._pins[loop.index0].parent.parent.refdes }}{% endif %}
                             {{ itf.other._pins[loop.index0].parent.refdes }}.{{ itf.other._pins[loop.index0].name }}
                         </a></td>
                         <td><a href="{{ itf.other.parent.refdes|lower|urlencode }}.html#brd-{{ itf.other._pins[loop.index0].parent.parent.refdes|lower|urlencode }}-sig-{{ itf.other._pins[loop.index0].signal.name|lower|urlencode }}">

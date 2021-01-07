@@ -18,7 +18,6 @@ def test_main():
     assert len(mega._components) == 68
     assert len(mega._signals) == 108 + 1
     assert len(mega._interfaces) == 0
-    assert len(mega._dummypins) == 0
 
     # verify signal ADC0
     adc0 = mega.get_signal("ADC0")

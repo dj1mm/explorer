@@ -430,6 +430,7 @@ class Parser:
         self.consume(TokenType.SEMICOLON)
 
         package = ''
+        parttype = ComponentType.Default
         self.consume(TokenType.BODY)
         while self.current_token.type != TokenType.ENDBODY:
             if self.current_token.type == TokenType.ID:
@@ -452,6 +453,17 @@ class Parser:
             if self.current_token.type == TokenType.CLASS:
                 self.consume(TokenType.CLASS)
                 self.consume(TokenType.EQUALS)
+
+                clazz = self.current_token.value
+                if clazz == "'IO'":
+                    parttype = ComponentType.Connector
+                elif clazz == "'DISCRETE'":
+                    parttype = ComponentType.Discrete
+                elif clazz == "'IC'":
+                    parttype = ComponentType.Chip
+                else:
+                    parttype = ComponentType.Default
+
                 self.consume(TokenType.STRING)
                 self.consume(TokenType.SEMICOLON)
             
@@ -485,7 +497,7 @@ class Parser:
         self.consume(TokenType.ENDPRIMITIVE)
         self.consume(TokenType.SEMICOLON)
 
-        self.parts[identifier] = { 'identifier': identifier, 'package': package, 'pins': pins }
+        self.parts[identifier] = { 'identifier': identifier, 'package': package, 'type': parttype, 'pins': pins }
 
     def parse_pstxnet_file(self):
         """
@@ -513,6 +525,10 @@ class Parser:
         while self.current_token.type != TokenType.END:
             self.parse_pstxnet_netname()
 
+        # Do we want to sort the list of signal, i believe so, but is this the
+        # right place to do this?
+        self.board.signals.sort(key=lambda sig: sig.name)
+
         self.consume(TokenType.END)
         self.consume(TokenType.DOT)
 
@@ -520,6 +536,9 @@ class Parser:
         self.consume(TokenType.NETNAME)
 
         signal = Signal(self.current_token.value[1:-1])
+        if signal.name == 'NC':
+            signal.type = SignalType.NC
+
         self.board.add_signal(signal)
         self.consume(TokenType.STRING)
 
@@ -528,12 +547,7 @@ class Parser:
         self.consume(TokenType.COLON)
 
         # Net properties
-        while self.current_token.type != TokenType.SEMICOLON:
-            self.consume(TokenType.ID)
-            self.consume(TokenType.EQUALS)
-            self.consume(TokenType.STRING)
-            if self.current_token.type == TokenType.COMMA:
-                self.consume(TokenType.COMMA)
+        self.parse_properties()
         self.consume(TokenType.SEMICOLON)
 
         while self.current_token.type == TokenType.NODENAME:
@@ -611,6 +625,10 @@ class Parser:
         while self.current_token.type != TokenType.END:
             self.parse_pstxprt_prtname()
 
+        # Do we want to sort the list of components, i believe so, but is this
+        # the right place to do this?
+        self.board.components.sort(key=lambda com: com.refdes)
+
     def parse_pstxprt_prtname(self):
         self.consume(TokenType.PARTNAME)
 
@@ -621,13 +639,7 @@ class Parser:
         self.consume(TokenType.STRING)
         self.consume(TokenType.COLON)
 
-        while self.current_token.type != TokenType.SEMICOLON:
-            self.consume(TokenType.ID)
-            self.consume(TokenType.EQUALS)
-            self.consume(TokenType.STRING)
-
-            if self.current_token.type == TokenType.COMMA:
-                self.consume(TokenType.COMMA)
+        properties = self.parse_properties()
         self.consume(TokenType.SEMICOLON)
 
         while self.current_token.type == TokenType.SECTION_NUMBER:
@@ -636,20 +648,36 @@ class Parser:
             self.consume(TokenType.STRING)
             self.consume(TokenType.COLON)
 
-            while self.current_token.type != TokenType.SEMICOLON:
-                self.consume(TokenType.ID)
-                self.consume(TokenType.EQUALS)
-                self.consume(TokenType.STRING)
-                if self.current_token.type == TokenType.COMMA:
-                    self.consume(TokenType.COMMA)
+            self.parse_properties()
             self.consume(TokenType.SEMICOLON)
 
         part = self.parts[name[1:-1]]
         component = Component(refdes, part['package'])
+        component.type = part['type']
         for pin in part['pins']:
             component.add_pin(OuterPin(pin[0], pin[1], component))
+
+        if 'NO_XNET_CONNECTION' in properties:
+            component.ignore_model = True
+
         self.board.add_component(component)
 
+    def parse_properties(self):
+        properties = {}
+        while self.current_token.type != TokenType.SEMICOLON:
+            name = self.current_token.value
+            self.consume(TokenType.ID)
+            self.consume(TokenType.EQUALS)
+
+            value = self.current_token.value
+            self.consume(TokenType.STRING)
+
+            properties[name] = value
+
+            if self.current_token.type == TokenType.COMMA:
+                self.consume(TokenType.COMMA)
+
+        return properties
 
 
 def read_allegro(folder: str):
@@ -660,7 +688,6 @@ def read_allegro(folder: str):
     # pstxnet that we each parse in turn
     pstchip_dat = os.path.join(folder, 'pstchip.dat')
     with open(pstchip_dat, 'r') as f:
-        
         try:
             parse(f)
         except (ValueError, LexerError, ParserError) as e:
@@ -669,7 +696,6 @@ def read_allegro(folder: str):
 
     pstxprt_dat = os.path.join(folder, 'pstxprt.dat')
     with open(pstxprt_dat, 'r') as f:
-        
         try:
             parse(f)
         except (ValueError, LexerError, ParserError) as e:
@@ -678,7 +704,6 @@ def read_allegro(folder: str):
 
     pstxnet_dat = os.path.join(folder, 'pstxnet.dat')
     with open(pstxnet_dat, 'r') as f:
-        
         try:
             parse(f)
         except (ValueError, LexerError, ParserError) as e:

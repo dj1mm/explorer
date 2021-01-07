@@ -41,9 +41,11 @@ class Serialize:
             self.result[id(obj)] = res
 
         if isinstance(obj, Component):
-            res = {"id": id(obj), "kind": "component", "refdes": obj.refdes, "package": obj.package, "parent": id(obj.parent), "pins": []}
+            res = {"id": id(obj), "kind": "component", "refdes": obj.refdes, "package": obj.package, "parent": id(obj.parent), "type": id(obj.type), "pins": [], "model": []}
             for pin in obj._outer_pins:
                 res["pins"] += [id(obj._outer_pins[pin])]
+            if not obj.ignore_model and len(obj.model) > 0:
+                res["model"] = obj.model
             self.result[id(obj)] = res
 
         if isinstance(obj, OuterPin):
@@ -56,7 +58,7 @@ class Serialize:
             self.result[id(obj)] = res
 
         if isinstance(obj, Signal):
-            res = {"id": id(obj), "kind": "signal", "name": obj.name, "parent": id(obj.parent), "pins": [], "net": id(self.sigmap.resolved_net(obj))}
+            res = {"id": id(obj), "kind": "signal", "name": obj.name, "type": obj.type, "parent": id(obj.parent), "pins": [], "net": id(self.sigmap.resolved_net(obj))}
             for pin in obj._pins:
                 if isinstance(pin, OuterPin) is False:
                     continue
