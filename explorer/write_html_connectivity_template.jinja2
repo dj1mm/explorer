@@ -1,0 +1,89 @@
+<html>
+
+<head>
+    <title>{{ title }}
+    </title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>Part of system: <a href="index.html">{{ system.name }}</a></p>
+
+    <pre>
+    SELECT ALL NETS
+            STARTING FROM
+{%- if starting.signals is defined %} BOARD <input type="text" readonly value="{{ starting.refdes }}" />
+                          {%- else %} COMPONENT <input type="text" readonly value="{{ starting.parent.refdes }}.{{ starting.refdes }}" />
+{%- endif %}
+            SHOWING CONNECTIONS
+{%- for dest in to %}
+{% if loop.first %}            {% else %}       THEN {% endif -%}
+    TO
+    {%- if dest.signals is defined %} BOARD <input type="text" readonly value="{{ dest.refdes }}" />
+                          {%- else %} COMPONENT <input type="text" readonly value="{{ dest.parent.refdes }}.{{ dest.refdes }}" />
+    {%- endif -%}
+{%- endfor -%}</pre>
+
+    {% set nodes = [starting] + to %}
+    <table border="1">
+    <thead>
+        <tr>
+        {% for dest in nodes %}
+            <th>
+                {% if dest.signals is defined %}<a href="{{ dest.refdes|lower|urlencode }}.html">{{ dest.refdes }}</a>
+                {% else %}                      <a href="{{ dest.parent.refdes|lower|urlencode }}.html#brd-{{ dest.parent.refdes|lower|urlencode }}-com-{{ dest.refdes|lower|urlencode }}">{{ dest.parent.refdes }}.{{ dest.refdes }}
+                {% endif %}
+            </th>
+        {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    {% if starting.signals is defined %}
+        {% set signals = starting.signals %}
+    {% else %}
+        {% set signals = [] %}
+        {% for pin in starting._outer_pins.values() %}
+            {{ signals.append(pin.signal) or '' }}
+        {% endfor %}
+    {% endif %}
+    {% set writtenNets = [] %}
+    
+    {% for sig in signals %}
+    {% set net = sigmap.resolved_net(sig) %}
+    {% if net not in writtenNets %}
+        {{ writtenNets.append(net) or '' }}
+        <tr id="net-{{ net.net_number }}">
+            {% for node in nodes %}
+            <td>
+            <p>
+                {% if node.signals is defined %}{# We are tracing signals to a board #}
+                    {% for signal in net._signals if node == signal.parent %}
+                    {% if not loop.first %}<br>{% endif %}
+                    <a href="{{ signal.parent.refdes|lower|urlencode }}.html#brd-{{ signal.parent.refdes|lower|urlencode }}-sig-{{ signal.name|lower|urlencode }}">
+                        {{ signal.name }}
+                        ({{ signal._pins|length}} pins)
+                    </a>
+                    {% endfor %}
+                {% else %}{# We are tracing signals to a component #}
+                {% for signal in net._signals if node.parent == signal.parent %}
+                    {% for pin in signal._pins if pin.parent == node %}
+                        {% if not loop.first %}<br>{% endif %}
+                        <a href="{{ signal.parent.refdes|lower|urlencode }}.html#brd-{{ signal.parent.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">
+                            {{ pin.parent.refdes }}.{{ pin.number }}:{{ pin.name }}
+                        </a>
+                    {% endfor %}
+                {% endfor %}
+                {% endif %}
+
+            </p>
+            </td>
+            {% endfor %}
+        </tr>
+    {% endif %}
+    {% endfor %}
+    
+    </tbody>
+    </table>
+
+</body>
+</html>
+

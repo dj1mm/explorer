@@ -28,5 +28,16 @@
         {% endif %}
         {% endfor %}
     </ul>
+
+    {% if extra|length != 0 %}
+    <h2>Other reports</h2>
+    <ul>
+        {% for x in extra %}
+        <li>
+            <a href="connectivity-{{ x.id }}.html">{{ x.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 </body>
 </html>

@@ -132,6 +132,7 @@ class Parser:
                     nc = self.board.get_signal('NC')
                 except:
                     nc = Signal('NC')
+                    nc.type = SignalType.NC
                     self.board.add_signal(nc)
                 nc.connect(comp.get_pin(val['Pad']))
 

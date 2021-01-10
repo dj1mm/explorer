@@ -81,7 +81,7 @@ def main():
     # Dump(my_system)
 
     write_json(my_system, 'out.json')
-    write_html(my_system, 'out')
+    write_html(my_system, 'out', extra=[Connectivity(mega, [base.get_component("U2"), base])])
 
     current, peak = tracemalloc.get_traced_memory()
     print(f"time: {datetime.now()-startTime}; MEM: {current / 10**6}MB; Peak: {peak / 10**6}MB")
