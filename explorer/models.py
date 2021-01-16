@@ -6,12 +6,19 @@ from contextlib import contextmanager
 from disjoint_set import DisjointSet
 
 class ComponentType(IntEnum):
+    """
+    A component is either be a connector, a discrete, a chip or unspecified.
+    """
     Default = 0
     Connector = 1
     Discrete = 2
     Chip = 3
 
-class SignalType(IntEnum):
+class WireType(IntEnum):
+    """
+    A wire is either a wire carrying an ac signal, a wire carrying a static dc
+    signal (eg a Gnd or Power net) or allegro's special no connect.
+    """
     Default = 0
     DC = 1
     NC = 2
@@ -23,14 +30,14 @@ class System:
         self._boards: list[Board] = list()
 
     def add_board(self, board: Board):
-        if board._parent is self: raise RuntimeError(f"board {board.refdes} is already part of system")
-        if board._parent is not None: raise RuntimeError("board {board.refdes} is already part of a system")
+        if board._parent is self: raise RuntimeError(f"board {board.identifier} is already part of system")
+        if board._parent is not None: raise RuntimeError("board {board.identifier} is already part of a system")
         self._boards.append(board)
         board._parent = self
 
     def get_board(self, name: str):
         for board in self._boards:
-            if board.refdes == name:
+            if board.identifier == name:
                 return board
         raise RuntimeError(f"board {name} not found")
 
@@ -46,18 +53,18 @@ class System:
 
 class Board:
     """
-    a board has a name, a refdes, a bunch of components and lots of signals.
-    Name v/s refdes. Consider multiple raspberry pi boards.
-    Name is rpi. Refdes is rpi0, rpi1, rpi2 ...
+    a board has a name, a identifier, a bunch of components and lots of wires.
+    Name v/s identifier. Consider multiple raspberry pi boards.
+    Name is rpi. identifier is rpi0, rpi1, rpi2 ...
     A board also has:
     - interfaces - these are connections to other interfaces on other boards
     """
     def __init__(self) -> None:
         self.name = ""
-        self.refdes = ""
+        self.identifier = ""
         self._parent: System | None       = None
         self._components: list[Component] = list()
-        self._signals: list[Signal]       = list()
+        self._wires: list[Wire]           = list()
         self._interfaces: list[Interface] = list()
 
     @property
@@ -81,21 +88,21 @@ class Board:
     def components(self):
         return self._components
 
-    def add_signal(self, signal: Signal):
-        if signal._parent is self: raise RuntimeError(f"signal {signal.name} is already part of board")
-        if signal._parent is not None: raise RuntimeError(f"signal {signal.name} is already part of another board")
-        signal._parent = self
-        self._signals.append(signal)
+    def add_wire(self, wire: Wire):
+        if wire._parent is self: raise RuntimeError(f"wire {wire.name} is already part of board")
+        if wire._parent is not None: raise RuntimeError(f"wire {wire.name} is already part of another board")
+        wire._parent = self
+        self._wires.append(wire)
 
-    def get_signal(self, name: str):
-        for signal in self._signals:
-            if signal.name == name:
-                return signal
-        raise RuntimeError(f"signal {name} not found")
+    def get_wire(self, name: str):
+        for wire in self._wires:
+            if wire.name == name:
+                return wire
+        raise RuntimeError(f"wire {name} not found")
 
     @property
-    def signals(self):
-        return self._signals
+    def wires(self):
+        return self._wires
 
     def add_interface(self, interface: Interface):
         if interface._parent is self: raise RuntimeError(f"interface {interface.name} is already part of board")
@@ -114,7 +121,7 @@ class Board:
         return self._interfaces
 
     def __repr__(self) -> str:
-        return f"Board {self.refdes} ({self.name}) ({len(self.components)} components) ({len(self.signals)} signals) ({len(self.interfaces)} interfaces)"
+        return f"Board {self.identifier} ({self.name}) ({len(self.components)} components) ({len(self.wires)} wires) ({len(self.interfaces)} interfaces)"
 
     def __str__(self) -> str:
         return f"Board {hex(id(self))}"
@@ -122,18 +129,32 @@ class Board:
 class Interface:
     """
     a board normally has no top level ports. It is a closed netlist. More often
-    than not, it is desirable to physically mate multiple boards together, in
-    which case the signals in both boards connect to the same electrical net.
+    than not, it is desirable to physically mate two, or more boards together.
 
-    Eg 1, gpu has golden pins, and mates to a motherboard's pcie interface
-    Eg 2, raspberry pi has a gpio header, and mates with a daughter board
+    In explorer, board connections are represented as interfaces and interfaces
+    are connected together.
+
+    ```
+    # Consider a raspberry pi and its daughter board
+    # rpi_brd = Board(...)
+    # daughter_brd = Board(...)
+
+    # Create board interfaces like so:
+    rpi_40x2_header = Interface('male_headers')
+    rpi_brd.add_interface(rpi_40x2_header)
+    db_40x2_header = Interface('female_headers')
+    daughter_brd.add_interface(db_40x2_header)
+
+    # And connect both boards like that:
+    rpi_40x2_header.connect(db_40x2_header)
+    ```
     """
     def __init__(self, name: str) -> None:
         self._name = name
 
-        self._parent: Board | None           = None
-        self._other: Interface | None        = None
-        self._pins: list[OuterPin]           = list()
+        self._parent: Board | None    = None
+        self._other: Interface | None = None
+        self._pins: list[Pin]         = list()
 
     @property
     def name(self):
@@ -148,7 +169,7 @@ class Interface:
     def other(self):
         return self._other
 
-    def add_pin(self, pin: OuterPin):
+    def add_pin(self, pin: Pin):
         if pin.parent is None: raise RuntimeError("pin does not belong to a valid component")
         if pin.parent.parent is None or pin.parent.parent is not self.parent: raise RuntimeError("component and interface are on different board")
         if self in pin.interfaces: raise RuntimeError("pin already belongs to this interface")
@@ -175,7 +196,7 @@ class Interface:
     def __repr__(self) -> str:
         if self.other is None:
             return f"Interface {self.name} -> None ({len(self.pins)} pins)"
-        return f"Interface {self.parent.refdes}.{self.name} -> {self.other.parent.refdes}.{self.other.name} ({len(self.pins)} pins)"
+        return f"Interface {self.parent.identifier}.{self.name} -> {self.other.parent.identifier}.{self.other.name} ({len(self.pins)} pins)"
 
     def __str__(self) -> str:
         return f"Interface {hex(id(self))}"
@@ -190,8 +211,8 @@ class Component:
         self._package = package
         self.type     = ComponentType.Default
 
-        self._parent: Board | None           = None
-        self._outer_pins: dict[str,OuterPin] = dict()
+        self._parent: Board | None = None
+        self._pins: dict[str,Pin]  = dict()
 
 
         # A model is a list of pins that are actually connected when looked
@@ -202,7 +223,7 @@ class Component:
         # differently). Same goes for buffers
         self._model: list[tuple[str, str]] = []
         
-        # If true, we will not apply the component model during signal mapping
+        # If true, we will not apply the component model during mapping
         self.ignore_model = False
 
     @property
@@ -225,30 +246,32 @@ class Component:
     @model.setter
     def model(self, value: list[tuple[str, str]]):
         for (lhs, rhs) in value:
-            if lhs not in self._outer_pins: raise RuntimeError(f"Invalid {lhs} is not a valid pin")
-            if rhs not in self._outer_pins: raise RuntimeError(f"Invalid {rhs} is not a valid pin")
+            if lhs not in self._pins: raise RuntimeError(f"Invalid {lhs} is not a valid pin")
+            if rhs not in self._pins: raise RuntimeError(f"Invalid {rhs} is not a valid pin")
         self._model = value
 
-    def add_pin(self, pin: OuterPin):
-        if pin.number in self._outer_pins: raise RuntimeError("redefinition of pin")
-        self._outer_pins[pin.number] = pin
+    def add_pin(self, pin: Pin):
+        if pin.number in self._pins: raise RuntimeError("redefinition of pin")
+        self._pins[pin.number] = pin
 
     def get_pin(self, number: str):
-        if number not in self._outer_pins: raise RuntimeError(f"pin {number} not found")
-        return self._outer_pins[number]
+        if number not in self._pins: raise RuntimeError(f"pin {number} not found")
+        return self._pins[number]
 
     def __repr__(self) -> str:
-        return f"Component {self.refdes} ({len(self._outer_pins)} pins)"
+        return f"Component {self.refdes} ({len(self._pins)} pins)"
 
     def __str__(self) -> str:
         return f"Component {hex(id(self))}"
 
-class OuterPin:
+class Pin:
     """
     when components are placed on a board, they have outerpins. Each outerpin
     have a pin number and a pin name and is connected to at most one signal.
 
     Same for interfaces. Each interface consists of several outerpins.
+
+    A pin of a component can be part of multiple interfaces.
     """
     def __init__(self, number: str, name: str, parent: Component) -> None:
         self._number = number
@@ -256,7 +279,7 @@ class OuterPin:
         self._parent = parent
         self._interfaces: list[Interface] = []
 
-        self._signal: Signal | None = None
+        self._wire: Wire | None = None
 
     @property
     def number(self):
@@ -275,72 +298,72 @@ class OuterPin:
         return self._interfaces
 
     @property
-    def signal(self):
-        return self._signal
+    def wire(self):
+        return self._wire
 
     def __repr__(self) -> str:
-        return f"OuterPin {self.parent.refdes}.{self.number}:{self.name} -> {repr(self.signal)}"
+        return f"Pin {self.parent.refdes}.{self.number}:{self.name} -> {repr(self.wire)}"
 
     def __str__(self) -> str:
-        return f"OuterPin {hex(id(self))}"
+        return f"Pin {hex(id(self))}"
 
-class Signal:
+class Wire:
     """
-    signal represents a physical pcb trace - it has a name, it connects pins
+    wire represents a physical pcb trace - it has a name, it connects pins
     together
     """
     def __init__(self, name: str) -> None:
         self._name = name
-        self.type = SignalType.Default
+        self.type = WireType.Default
 
         self._parent: Board | None = None
-        self._pins: list[OuterPin] = list()
+        self._pins: list[Pin] = list()
 
     @property
     def parent(self):
-        if self._parent is None: raise RuntimeError("signal malformed")
+        if self._parent is None: raise RuntimeError("wire malformed")
         return self._parent
 
     @property
     def name(self):
         return self._name
 
-    def connect(self, other: OuterPin):
-        if self.parent != other.parent.parent: raise RuntimeError("signal and pin are on different board")
+    def connect(self, other: Pin):
+        if self.parent != other.parent.parent: raise RuntimeError("wire and pin are on different board")
 
-        outer_pin = other.parent._outer_pins[other.number]
-        if outer_pin._signal is self: raise RuntimeError("signal is already connected to this pin")
-        if outer_pin._signal is not None: raise RuntimeError("pin is already connected to another signal")
-        other._signal = self
-        outer_pin._signal = self
-        self._pins.append(outer_pin)
+        pin = other.parent._pins[other.number]
+        if pin._wire is self: raise RuntimeError("wire is already connected to this pin")
+        if pin._wire is not None: raise RuntimeError("pin is already connected to another wire")
+        other._wire = self
+        pin._wire = self
+        self._pins.append(pin)
 
     def __repr__(self) -> str:
-        return f"Signal {self.name} ({self.type.name}) ({len(self._pins)} pins)"
+        return f"Wire {self.name} ({self.type.name}) ({len(self._pins)} pins)"
 
     def __str__(self) -> str:
-        return f"Signal {hex(id(self))} {self.type}"
+        return f"Wire {hex(id(self))} {self.type}"
 
 
 class Net:
-    def __init__(self, net_number: int, signals: set[Signal]):
+    def __init__(self, net_number: int, wires: set[Wire]):
         self.net_number = net_number
-        self._signals = signals
+        self._wires = wires
 
     def __repr__(self) -> str:
-        return f"Net #{self.net_number} ({len(self._signals)} signals)"
+        return f"Net #{self.net_number} ({len(self._wires)} wires)"
 
-class SignalMap:
+class Netlist:
     """
     The boards generated by the read_.* functions only provides a list of named
-    signals and how they are interconnected together. There is no such notion
+    wires and how they are interconnected together. There is no such notion
     of a net.
 
-    In reality, for the data to be useful, every signal must map to exactly one
-    net. Interconnected signals must map to the same net. This allows queries
+    In reality, for the data to be useful, every wire must map to exactly one
+    net. Interconnected wires must map to the same net. This allows queries
     such as 'get list of pins connected to this pin' in decent time.
 
-    This class scans every signals in a system, and does the net mapping.
+    This class scans every wires in a system, and does the net mapping.
     ```
     # Given:
     # sig_a = system.board1.sig_a
@@ -348,61 +371,68 @@ class SignalMap:
     # sig_c = system.board1.sig_c
     # sig_a.connect(sig_c)
 
-    sm = SignalMap(system)
+    sm = Netlist(system)
     sm.resolved_net(sig_a) == sm.resolved_net(sig_c) != sm.resolved_net(sig_b)
     ```
     """
     def __init__(self, system: System):
-        sigmap = DisjointSet()
-        self.nets: dict[Signal, Net] = dict()
+        set_of_wires_and_signals = DisjointSet()
+        self.nets: dict[Wire, Net] = dict()
 
         for board in system.boards:
-            for signal in board.signals:
-                sigmap.find(signal)
+            for wire in board.wires:
+                set_of_wires_and_signals.find(wire)
             for interface in board.interfaces:
                 if interface.other is None:
                     continue
                 for i in range(len(interface.pins)):
-                    lhs = interface.pins[i].signal
-                    rhs = interface.other.pins[i].signal
+                    lhs = interface.pins[i].wire
+                    rhs = interface.other.pins[i].wire
                     if lhs is None or rhs is None:
                         continue
-                    # Note signal NC is a special signal. Any pins connected to
-                    # the NC signal are 'No connect', ie are open. So,dont even
-                    # try to merge NC signals with other signals if any
-                    if (lhs.type == SignalType.NC) ^ (rhs.type == SignalType.NC):
+                    # Note wire NC is a special wire. Any pins connected to
+                    # the NC wire are 'No connect', ie are open. So,dont even
+                    # try to merge NC wires with other wires if any
+                    if (lhs.type == WireType.NC) ^ (rhs.type == WireType.NC):
                         continue
-                    sigmap.union(lhs, rhs)
+                    set_of_wires_and_signals.union(lhs, rhs)
             for component in board.components:
                 if component.ignore_model:
                     continue
                 for shorts in component.model:
-                    lhs = component.get_pin(shorts[0]).signal
-                    rhs = component.get_pin(shorts[1]).signal
+                    lhs = component.get_pin(shorts[0]).wire
+                    rhs = component.get_pin(shorts[1]).wire
                     if lhs is None or rhs is None:
                         continue
-                    if (lhs.type == SignalType.NC) ^ (rhs.type == SignalType.NC):
+                    if (lhs.type == WireType.NC) ^ (rhs.type == WireType.NC):
                         continue
-                    if lhs.type == SignalType.DC or rhs.type == SignalType.DC:
+                    if lhs.type == WireType.DC or rhs.type == WireType.DC:
                         continue
-                    sigmap.union(lhs, rhs)
+                    set_of_wires_and_signals.union(lhs, rhs)
 
         net_number = 0
-        for key,sigs in sigmap.itersets(with_canonical_elements=True):
+        for key,sigs in set_of_wires_and_signals.itersets(with_canonical_elements=True):
             self.nets[key] = Net(net_number, sigs)
             net_number += 1
-        self.sigmap = sigmap
+        self.set_of_wires_and_signals = set_of_wires_and_signals
 
-    def resolved_net(self, signal: Signal):
+    def resolved_net(self, wire: Wire):
         """
-        Given a signal (which is part of the system provided while constructing
+        Given a wire (which is part of the system provided while constructing
         this class), get its corresponding net
         """
-        if signal not in self.nets:
-            signal = self.sigmap.find(signal)
-        if signal not in self.nets:
-            raise ValueError("Signal not part of signal map")
-        return self.nets[signal]
+        if wire not in self.nets:
+            wire = self.set_of_wires_and_signals.find(wire)
+        if wire not in self.nets:
+            raise ValueError("Wire not part of wire map")
+        return self.nets[wire]
+
+    def resolved_wires(self, wire: Wire):
+        """
+        Given a wire (which is part of the system provided while constructing
+        this class), get all other wires electrically connected to it
+        """
+        return (sig for sig in self.resolved_net(wire)._wires if sig != wire)
 
 
 class Dump:
@@ -456,7 +486,7 @@ class Dump:
 
     def dump_board(self, inst: Board):
         result = []
-        result += [f"{self.title()}Board {hex(id(inst))} name: '{inst.name}' refdes: '{inst.refdes}'"]
+        result += [f"{self.title()}Board {hex(id(inst))} name: '{inst.name}' identifier: '{inst.identifier}'"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
 
         if len(inst._components) == 0:
@@ -467,13 +497,13 @@ class Dump:
             with self.indent(True):
                 result += self.dump(component)
 
-        if len(inst._signals) == 0:
-            result += [f"{self.indentation()}signals: []"]
+        if len(inst._wires) == 0:
+            result += [f"{self.indentation()}wires: []"]
         else:
-            result += [f"{self.indentation()}signals:"]
-        for signal in inst._signals:
+            result += [f"{self.indentation()}wires:"]
+        for wire in inst._wires:
             with self.indent(True):
-                result += self.dump(signal)
+                result += self.dump(wire)
 
         if len(inst._interfaces) == 0:
             result += [f"{self.indentation()}interfaces: []"]
@@ -506,23 +536,23 @@ class Dump:
         result += [f"{self.title()}Component {hex(id(inst))} refdes: '{inst.refdes}' package: '{inst.package}' model: {inst.model} ignore_model: {inst.ignore_model}"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
 
-        if len(inst._outer_pins) == 0:
-            result += [f"{self.indentation()}outer_pins: {{}}"]
+        if len(inst._pins) == 0:
+            result += [f"{self.indentation()}pins: {{}}"]
         else:
-            result += [f"{self.indentation()}outer_pins:"]
-        for pin in inst._outer_pins:
+            result += [f"{self.indentation()}pins:"]
+        for pin in inst._pins:
             with self.indent(True):
                 result += [f"{self.title()}'{pin}' =>"]
                 with self.indent():
-                    result += self.dump(inst._outer_pins[pin])
+                    result += self.dump(inst._pins[pin])
 
         return result
 
-    def dump_outerpin(self, inst: OuterPin):
+    def dump_pin(self, inst: Pin):
         result = []
-        result += [f"{self.title()}OuterPin {hex(id(inst))} number: {inst.number} name: {inst.name}"]
+        result += [f"{self.title()}Pin {hex(id(inst))} number: {inst.number} name: {inst.name}"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
-        result += [f"{self.indentation()}signal&: {inst._signal}"]
+        result += [f"{self.indentation()}wire&: {inst._wire}"]
 
         if len(inst._interfaces) == 0:
             result += [f"{self.indentation()}interfaces&: []"]
@@ -534,9 +564,9 @@ class Dump:
 
         return result
 
-    def dump_signal(self, inst):
+    def dump_wire(self, inst):
         result = []
-        result += [f"{self.title()}Signal {hex(id(inst))} name: '{inst.name}' type: {inst.type.name}"]
+        result += [f"{self.title()}Wire {hex(id(inst))} name: '{inst.name}' type: {inst.type.name}"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
 
         if len(inst._pins) == 0:

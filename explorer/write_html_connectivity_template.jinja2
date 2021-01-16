@@ -1,8 +1,7 @@
 <html>
 
 <head>
-    <title>{{ title }}
-    </title>
+    <title>{{ title }}</title>
 </head>
 <body>
     <h1>{{ title }}</h1>
@@ -11,15 +10,15 @@
     <pre>
     SELECT ALL NETS
             STARTING FROM
-{%- if starting.signals is defined %} BOARD <input type="text" readonly value="{{ starting.refdes }}" />
-                          {%- else %} COMPONENT <input type="text" readonly value="{{ starting.parent.refdes }}.{{ starting.refdes }}" />
+{%- if starting.wires is defined %} BOARD <input type="text" readonly value="{{ starting.identifier }}" />
+                        {%- else %} COMPONENT <input type="text" readonly value="{{ starting.parent.identifier }}.{{ starting.refdes }}" />
 {%- endif %}
             SHOWING CONNECTIONS
 {%- for dest in to %}
 {% if loop.first %}            {% else %}       THEN {% endif -%}
     TO
-    {%- if dest.signals is defined %} BOARD <input type="text" readonly value="{{ dest.refdes }}" />
-                          {%- else %} COMPONENT <input type="text" readonly value="{{ dest.parent.refdes }}.{{ dest.refdes }}" />
+    {%- if dest.wires is defined %} BOARD <input type="text" readonly value="{{ dest.identifier }}" />
+                        {%- else %} COMPONENT <input type="text" readonly value="{{ dest.parent.identifier }}.{{ dest.refdes }}" />
     {%- endif -%}
 {%- endfor -%}</pre>
 
@@ -29,45 +28,45 @@
         <tr>
         {% for dest in nodes %}
             <th>
-                {% if dest.signals is defined %}<a href="{{ dest.refdes|lower|urlencode }}.html">{{ dest.refdes }}</a>
-                {% else %}                      <a href="{{ dest.parent.refdes|lower|urlencode }}.html#brd-{{ dest.parent.refdes|lower|urlencode }}-com-{{ dest.refdes|lower|urlencode }}">{{ dest.parent.refdes }}.{{ dest.refdes }}
+                {% if dest.wires is defined %}<a href="{{ dest.identifier|lower|urlencode }}.html">{{ dest.identifier }}</a>
+                {% else %}                    <a href="{{ dest.parent.identifier|lower|urlencode }}.html#com-{{ dest.refdes|lower|urlencode }}">{{ dest.parent.identifier }}.{{ dest.refdes }}
                 {% endif %}
             </th>
         {% endfor %}
         </tr>
     </thead>
     <tbody>
-    {% if starting.signals is defined %}
-        {% set signals = starting.signals %}
+    {% if starting.wires is defined %}
+        {% set wires = starting.wires %}
     {% else %}
-        {% set signals = [] %}
-        {% for pin in starting._outer_pins.values() %}
-            {{ signals.append(pin.signal) or '' }}
+        {% set wires = [] %}
+        {% for pin in starting._pins.values() %}
+            {{ wires.append(pin.wire) or '' }}
         {% endfor %}
     {% endif %}
     {% set writtenNets = [] %}
     
-    {% for sig in signals %}
-    {% set net = sigmap.resolved_net(sig) %}
+    {% for sig in wires %}
+    {% set net = netlist.resolved_net(sig) %}
     {% if net not in writtenNets %}
         {{ writtenNets.append(net) or '' }}
         <tr id="net-{{ net.net_number }}">
             {% for node in nodes %}
             <td>
             <p>
-                {% if node.signals is defined %}{# We are tracing signals to a board #}
-                    {% for signal in net._signals if node == signal.parent %}
+                {% if node.wires is defined %}{# We are tracing wires to a board #}
+                    {% for wire in net._wires if node == wire.parent %}
                     {% if not loop.first %}<br>{% endif %}
-                    <a href="{{ signal.parent.refdes|lower|urlencode }}.html#brd-{{ signal.parent.refdes|lower|urlencode }}-sig-{{ signal.name|lower|urlencode }}">
-                        {{ signal.name }}
-                        ({{ signal._pins|length}} pins)
+                    <a href="{{ wire.parent.identifier|lower|urlencode }}.html#wire-{{ wire.name|lower|urlencode }}">
+                        {{ wire.name }}
+                        ({{ wire._pins|length}} pins)
                     </a>
                     {% endfor %}
-                {% else %}{# We are tracing signals to a component #}
-                {% for signal in net._signals if node.parent == signal.parent %}
-                    {% for pin in signal._pins if pin.parent == node %}
+                {% else %}{# We are tracing wires to a component #}
+                {% for wire in net._wires if node.parent == wire.parent %}
+                    {% for pin in wire._pins if pin.parent == node %}
                         {% if not loop.first %}<br>{% endif %}
-                        <a href="{{ signal.parent.refdes|lower|urlencode }}.html#brd-{{ signal.parent.refdes|lower|urlencode }}-com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">
+                        <a href="{{ wire.parent.identifier|lower|urlencode }}.html#com-{{ pin.parent.refdes|lower|urlencode }}-pin-{{ pin.name|lower|urlencode }}">
                             {{ pin.parent.refdes }}.{{ pin.number }}:{{ pin.name }}
                         </a>
                     {% endfor %}

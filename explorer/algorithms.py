@@ -41,7 +41,7 @@ def _depth_first(obj: Any):
     if isinstance(obj, Board):
         yield obj
         yield from depth_first(obj.components)
-        yield from depth_first(obj.signals)
+        yield from depth_first(obj.wires)
         yield from depth_first(obj.interfaces)
 
     if isinstance(obj, Interface):
@@ -49,12 +49,12 @@ def _depth_first(obj: Any):
 
     if isinstance(obj, Component):
         yield obj
-        yield from depth_first(obj._outer_pins.values())
+        yield from depth_first(obj._pins.values())
 
-    if isinstance(obj, OuterPin):
+    if isinstance(obj, Pin):
         yield obj
 
-    if isinstance(obj, Signal):
+    if isinstance(obj, Wire):
         yield obj
 
     if isinstance(obj, Net):
@@ -105,9 +105,9 @@ def _get_boards(obj: Any):
         yield obj.parent
     if isinstance(obj, Component):
         yield obj.parent
-    if isinstance(obj, OuterPin):
+    if isinstance(obj, Pin):
         pass
-    if isinstance(obj, Signal):
+    if isinstance(obj, Wire):
         yield obj.parent
     if isinstance(obj,  Net):
         pass
@@ -158,10 +158,10 @@ def _get_interfaces(obj: Any):
         yield obj.other
     if isinstance(obj, Component):
         pass
-    if isinstance(obj, OuterPin):
+    if isinstance(obj, Pin):
         for interface in obj.interfaces:
             yield interface
-    if isinstance(obj, Signal):
+    if isinstance(obj, Wire):
         pass
     if isinstance(obj, Net):
         pass
@@ -212,37 +212,37 @@ def _get_components(obj: Any):
         pass
     if isinstance(obj, Component):
         pass
-    if isinstance(obj, OuterPin):
+    if isinstance(obj, Pin):
         yield obj._parent
-    if isinstance(obj, Signal):
+    if isinstance(obj, Wire):
         pass
     if isinstance(obj,  Net):
         pass
 
 
-def get_signals(obj):
+def get_wires(obj):
     """
 
-    get_signals(obj, ...)
+    get_wires(obj, ...)
 
-    Get signal within an object.
+    Get wire within an object.
 
     Parameters
     ----------
     obj: object, Iterable - required
-        The object from where we must look for signals. For example, doing
-        `get_signals(system, ...)` will return all signals defined in all the
+        The object from where we must look for wires. For example, doing
+        `get_wires(system, ...)` will return all wires defined in all the
         boards defined in system.
 
     Returns
     -------
-    signals: generator
-        The non None signals associated to the object or collection thereof
+    wires: generator
+        The non None wires associated to the object or collection thereof
 
     """
     
     # filter function: Cull result if
-    # - signal is None
+    # - wire is None
     fn = lambda x: x is not None
 
     try:
@@ -251,28 +251,28 @@ def get_signals(obj):
         obj = iter([obj])
 
     for o in obj:
-        yield from filter(fn, _get_signals(o))
+        yield from filter(fn, _get_wires(o))
 
-def _get_signals(obj: Any):
+def _get_wires(obj: Any):
     """
-    Implementation of get_signals
+    Implementation of get_wires
     """
     if isinstance(obj, System):
         pass
     if isinstance(obj, Board):
-        for signal in obj.signals:
-            yield signal
+        for wire in obj.wires:
+            yield wire
     if isinstance(obj, Interface):
         pass
     if isinstance(obj, Component):
         pass
-    if isinstance(obj, OuterPin):
-        yield obj._signal
-    if isinstance(obj, Signal):
+    if isinstance(obj, Pin):
+        yield obj._wire
+    if isinstance(obj, Wire):
         pass
     if isinstance(obj, Net):
-        for signal in obj._signals:
-            yield signal
+        for wire in obj._wires:
+            yield wire
 
 def get_pins(obj):
     """
@@ -318,11 +318,11 @@ def _get_pins(obj: Any):
         for pin in obj.pins:
             yield pin
     if isinstance(obj, Component):
-        for name in obj._outer_pins:
-            yield obj._outer_pins[name]
-    if isinstance(obj, OuterPin):
+        for name in obj._pins:
+            yield obj._pins[name]
+    if isinstance(obj, Pin):
         pass
-    if isinstance(obj, Signal):
+    if isinstance(obj, Wire):
         for pin in obj._pins:
             yield pin
     if isinstance(obj, Net):

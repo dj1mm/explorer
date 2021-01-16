@@ -525,9 +525,9 @@ class Parser:
         while self.current_token.type != TokenType.END:
             self.parse_pstxnet_netname()
 
-        # Do we want to sort the list of signal, i believe so, but is this the
+        # Do we want to sort the list of wire, i believe so, but is this the
         # right place to do this?
-        self.board.signals.sort(key=lambda sig: sig.name)
+        self.board.wires.sort(key=lambda sig: sig.name)
 
         self.consume(TokenType.END)
         self.consume(TokenType.DOT)
@@ -535,11 +535,11 @@ class Parser:
     def parse_pstxnet_netname(self):
         self.consume(TokenType.NETNAME)
 
-        signal = Signal(self.current_token.value[1:-1])
-        if signal.name == 'NC':
-            signal.type = SignalType.NC
+        wire = Wire(self.current_token.value[1:-1])
+        if wire.name == 'NC':
+            wire.type = WireType.NC
 
-        self.board.add_signal(signal)
+        self.board.add_wire(wire)
         self.consume(TokenType.STRING)
 
         # Net canonical path
@@ -557,7 +557,7 @@ class Parser:
             self.consume(TokenType.ID)
 
             pin = component.get_pin(self.current_token.value)
-            signal.connect(pin)
+            wire.connect(pin)
             self.consume(TokenType.ID)
             self.consume(TokenType.STRING)
             self.consume(TokenType.COLON)
@@ -655,7 +655,7 @@ class Parser:
         component = Component(refdes, part['package'])
         component.type = part['type']
         for pin in part['pins']:
-            component.add_pin(OuterPin(pin[0], pin[1], component))
+            component.add_pin(Pin(pin[0], pin[1], component))
 
         if 'NO_XNET_CONNECTION' in properties:
             component.ignore_model = True
@@ -681,6 +681,9 @@ class Parser:
 
 
 def read_allegro(folder: str):
+    """
+    Read allegro netlist
+    """
 
     parse = Parser()
 

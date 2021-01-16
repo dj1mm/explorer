@@ -20,23 +20,23 @@ def main():
 
     # Read the netlist of the mega board
     mega = read_eagle('tests/mega/mega.nets', 'tests/mega/mega.pins', 'tests/mega/mega.parts')
-    mega.refdes = "mega"
+    mega.identifier = "mega"
     my_system.add_board(mega)
 
     mega_headers = Interface("mega_headers")
     mega.add_interface(mega_headers)
-    for pin in mega.get_component("PWMH")._outer_pins.values():
+    for pin in mega.get_component("PWMH")._pins.values():
         mega_headers.add_pin(pin)
-    for pin in mega.get_component("PWML")._outer_pins.values():
+    for pin in mega.get_component("PWML")._pins.values():
         mega_headers.add_pin(pin)
-    for pin in mega.get_component("POWER")._outer_pins.values():
+    for pin in mega.get_component("POWER")._pins.values():
         mega_headers.add_pin(pin)
-    for pin in mega.get_component("ADCL")._outer_pins.values():
+    for pin in mega.get_component("ADCL")._pins.values():
         mega_headers.add_pin(pin)
 
     # Read the netlist of the base shield
     base = read_eagle('tests/base/base.nets', 'tests/base/base.pins', 'tests/base/base.parts')
-    base.refdes = "base"
+    base.identifier = "base"
     my_system.add_board(base)
 
     base_headers = Interface("base_headers")

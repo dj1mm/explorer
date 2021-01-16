@@ -24,9 +24,9 @@ class Connectivity(Report):
         self.starting: Board | Component = starting
         self.to: list[Board | Component] = to
 
-    def __call__(self, env, sigmap, system) -> str:
+    def __call__(self, env, netlist, system) -> str:
         template = env.get_template("write_html_connectivity_template.jinja2")
-        return template.render(title=self.title, starting=self.starting, to=self.to, sigmap=sigmap,system=system)
+        return template.render(title=self.title, starting=self.starting, to=self.to, netlist=netlist,system=system)
 
 def write_html(system: System, *args, **kwargs):
     """
@@ -62,7 +62,7 @@ def write_html(system: System, *args, **kwargs):
     loader = FileSystemLoader(str(Path(__file__).parent)) # seems wsl need this
     env = Environment(loader=loader)
 
-    sigmap = SignalMap(system)
+    netlist = Netlist(system)
 
     file = f'{folder}/index.html'
     os.makedirs(os.path.dirname(file), exist_ok=True)
@@ -71,15 +71,15 @@ def write_html(system: System, *args, **kwargs):
         f.write(template.render(system=system, extra=extra))
 
     for brd in system.boards:
-        file = f'{folder}/{brd.refdes}.html'
+        file = f'{folder}/{brd.identifier}.html'
         os.makedirs(os.path.dirname(file), exist_ok=True)
         with open(file, "w") as f:
             template = env.get_template("write_html_board_template.jinja2")
-            f.write(template.render(board=brd, sigmap=sigmap))
+            f.write(template.render(board=brd, netlist=netlist))
 
     for x in extra:
         file = f'{folder}/connectivity-{x.id}.html'
         os.makedirs(os.path.dirname(file), exist_ok=True)
         with open(file, "w") as f:
-            f.write(x(env, sigmap, system))
+            f.write(x(env, netlist, system))
 

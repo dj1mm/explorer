@@ -6,6 +6,27 @@ from itertools import groupby
 from explorer.models import *
 
 def split_line_into_tokens(line):
+    """
+    Given a line like this:
+
+    ```
+    line = 'Abcd EFGHI         Klmn 1 23456789'
+    ```
+
+    Split the line into words (seperated by spaces).
+    Return a tuple containing the
+    - starting position
+    - finish position
+    - and the word itself (but trimmed)
+
+    In our example, function must return something like this:
+
+    ```
+    >>> list(split_lines_into_tokens(line))
+    [(0, 4, 'Abcd'), (5, 18, 'EFGHI'), (19, 23, 'Klmn'), (24, 25, '1'), (26, 33, '23456789')]
+    ```
+
+    """
     temp = None
     for k, g in groupby(enumerate(line.strip()), lambda x: not x[1].isspace()):
         if k:
@@ -16,6 +37,18 @@ def split_line_into_tokens(line):
     yield (temp[0], len(line)-1, temp[1])
 
 def lookahead(it):
+    """
+    Is the current value of the iterable, the last value? Use this function.
+
+    ```
+    >>> for i, last in lookahead(range(3)):
+    ...     print(i, last)
+    0 False
+    1 False
+    2 True
+    ```
+
+    """
     it = iter(it)
     last = next(it)
     for val in it:
@@ -24,6 +57,24 @@ def lookahead(it):
     yield last, True
 
 def parse_eagle_9_6_2_report_table(lines, keys):
+    """
+    Parse Eagle 9.6.2 reports that look something like this:
+
+    ```
+    Part     Pad      Pin        Dir      Net
+
+    0        A        A          pas      USR_LED0
+             C        C          pas      N$47
+
+    5VREG    1        VIN        in       N$79
+             2        OUT        pwr      N$16
+             3        FB         pwr      5.0V
+             4        SD         in       GND
+    ```
+
+    Note key header must already have been parsed
+    """
+
     vals = []
     for line in lines:
         line = line.rstrip()
@@ -59,6 +110,13 @@ def parse_eagle_9_6_2_report_table(lines, keys):
     return vals
 
 class Parser:
+    """
+    Parse eagle reports and populate an explorer Board object with content of
+    the report.
+    
+    Generate reports by doing File -> Export -> (Netlist | Partlist | Pinlist)
+
+    """
 
     def __init__(self):
         self.board = Board()
@@ -109,8 +167,8 @@ class Parser:
                 raise ValueError("Invalid pinlist file")
 
             if (val['Net'] != ''):
-                net = Signal(val['Net'])
-                self.board.add_signal(net)
+                net = Wire(val['Net'])
+                self.board.add_wire(net)
 
             net.connect(self.board.get_component(val['Part']).get_pin(val['Pad']))
 
@@ -124,16 +182,16 @@ class Parser:
             if (val['Part'] != '' or comp == None):
                 comp = self.board.get_component(val['Part'])
 
-            pin = OuterPin(val['Pad'], val['Pin'], comp)
+            pin = Pin(val['Pad'], val['Pin'], comp)
             comp.add_pin(pin)
 
             if val['Net'] == '*** unconnected ***':
                 try:
-                    nc = self.board.get_signal('NC')
+                    nc = self.board.get_wire('NC')
                 except:
-                    nc = Signal('NC')
-                    nc.type = SignalType.NC
-                    self.board.add_signal(nc)
+                    nc = Wire('NC')
+                    nc.type = WireType.NC
+                    self.board.add_wire(nc)
                 nc.connect(comp.get_pin(val['Pad']))
 
 
@@ -146,6 +204,9 @@ class Parser:
             self.board.add_component(comp)
 
 def read_eagle(nets: str, pins: str, parts: str):
+    """
+    Read eagle report files and populate a board object
+    """
     parse = Parser()
 
     with open(parts, 'r') as f:

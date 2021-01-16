@@ -6,7 +6,7 @@ from explorer import *
 
 def test_main():
     base = read_eagle('tests/base/base.nets', 'tests/base/base.pins', 'tests/base/base.parts')
-    base.refdes = "base"
+    base.identifier = "base"
 
     my_system = System()
     my_system.add_board(base)
@@ -14,9 +14,9 @@ def test_main():
     # Verify the generated model
 
     assert base.name == "base"
-    assert base.refdes == "base"
+    assert base.identifier == "base"
     assert len(base._components) == 24
-    assert len(base._signals) == 31 + 1
+    assert len(base._wires) == 31 + 1
     assert len(base._interfaces) == 0
 
     # import io

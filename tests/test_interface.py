@@ -15,13 +15,13 @@ def test_main():
 
     mega_headers = Interface("mega_headers")
     mega.add_interface(mega_headers)
-    for pin in mega.get_component("PWMH")._outer_pins.values():
+    for pin in mega.get_component("PWMH")._pins.values():
         mega_headers.add_pin(pin)
-    for pin in mega.get_component("PWML")._outer_pins.values():
+    for pin in mega.get_component("PWML")._pins.values():
         mega_headers.add_pin(pin)
-    for pin in mega.get_component("POWER")._outer_pins.values():
+    for pin in mega.get_component("POWER")._pins.values():
         mega_headers.add_pin(pin)
-    for pin in mega.get_component("ADCL")._outer_pins.values():
+    for pin in mega.get_component("ADCL")._pins.values():
         mega_headers.add_pin(pin)
 
     # Read the netlist of the base shield
