@@ -203,12 +203,17 @@ class Interface:
 
 class Component:
     """
-    A component is found on a board. It has a refdes and corresponds to a
+    A component is found on a board.
+    
+    Component is either a discrete (resistor, cap ...), a chip or a connector.
+    It has a refdes, a value, corresponds to both a schematic symbol and a pcb
     package
     """
-    def __init__(self, refdes: str, package: str) -> None:
+    def __init__(self, refdes: str, package: str, symbol: str, value: str) -> None:
         self._refdes  = refdes
         self._package = package
+        self._symbol  = symbol
+        self._value   = value
         self.type     = ComponentType.Default
 
         self._parent: Board | None = None
@@ -233,6 +238,14 @@ class Component:
     @property
     def package(self):
         return self._package
+
+    @property
+    def symbol(self):
+        return self._symbol
+
+    @property
+    def value(self):
+        return self._value
 
     @property
     def parent(self):
@@ -533,7 +546,10 @@ class Dump:
 
     def dump_component(self, inst):
         result = []
-        result += [f"{self.title()}Component {hex(id(inst))} refdes: '{inst.refdes}' package: '{inst.package}' model: {inst.model} ignore_model: {inst.ignore_model}"]
+        result += [f"{self.title()}Component {hex(id(inst))} refdes: '{inst.refdes}' model: {inst.model} ignore_model: {inst.ignore_model}"]
+        result += [f"{self.indentation()}package: '{inst.package}'"]
+        result += [f"{self.indentation()}symbol: '{inst.symbol}'"]
+        result += [f"{self.indentation()}value: '{inst.value}'"]
         result += [f"{self.indentation()}parent&: {inst.parent}"]
 
         if len(inst._pins) == 0:

@@ -200,7 +200,7 @@ class Parser:
             if (set(['Part', 'Value', 'Device', 'Package']) - val.keys()):
                 raise ValueError("Invalid partlist file")
 
-            comp = Component(val['Part'], val['Package'])
+            comp = Component(val['Part'], val['Package'], val['Device'], val['Value'])
             self.board.add_component(comp)
 
 def read_eagle(nets: str, pins: str, parts: str):

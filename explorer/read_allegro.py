@@ -430,6 +430,8 @@ class Parser:
         self.consume(TokenType.SEMICOLON)
 
         package = ''
+        symbol = ''
+        value = 'None'
         parttype = ComponentType.Default
         self.consume(TokenType.BODY)
         while self.current_token.type != TokenType.ENDBODY:
@@ -441,6 +443,7 @@ class Parser:
 
             self.consume(TokenType.PARTNAME)
             self.consume(TokenType.EQUALS)
+            symbol = self.current_token.value[1:-1]
             self.consume(TokenType.STRING)
             self.consume(TokenType.SEMICOLON)
             
@@ -472,10 +475,11 @@ class Parser:
                 self.consume(TokenType.EQUALS)
                 self.consume(TokenType.STRING)
                 self.consume(TokenType.SEMICOLON)
-            
+
             if self.current_token.type == TokenType.VALUE:
                 self.consume(TokenType.VALUE)
                 self.consume(TokenType.EQUALS)
+                value = self.current_token.value[1:-1]
                 self.consume(TokenType.STRING)
                 self.consume(TokenType.SEMICOLON)
 
@@ -497,7 +501,7 @@ class Parser:
         self.consume(TokenType.ENDPRIMITIVE)
         self.consume(TokenType.SEMICOLON)
 
-        self.parts[identifier] = { 'identifier': identifier, 'package': package, 'type': parttype, 'pins': pins }
+        self.parts[identifier] = { 'identifier': identifier, 'package': package, 'symbol': symbol, 'value': value, 'type': parttype, 'pins': pins }
 
     def parse_pstxnet_file(self):
         """
@@ -652,7 +656,7 @@ class Parser:
             self.consume(TokenType.SEMICOLON)
 
         part = self.parts[name[1:-1]]
-        component = Component(refdes, part['package'])
+        component = Component(refdes, part['package'], part['symbol'], part['value'])
         component.type = part['type']
         for pin in part['pins']:
             component.add_pin(Pin(pin[0], pin[1], component))
