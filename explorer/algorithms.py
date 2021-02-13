@@ -37,6 +37,14 @@ def _depth_first(obj: Any):
     if isinstance(obj, System):
         yield obj
         yield from depth_first(obj.boards)
+        yield from depth_first(obj.rtls)
+
+    if isinstance(obj, Rtl):
+        yield obj
+        yield from depth_first(obj.signals)
+
+    if isinstance(obj, Signal):
+        yield obj
 
     if isinstance(obj, Board):
         yield obj
@@ -99,6 +107,10 @@ def _get_boards(obj: Any):
     if isinstance(obj, System):
         for board in obj.boards:
             yield board
+    if isinstance(obj, Rtl):
+        pass
+    if isinstance(obj, Signal):
+        pass
     if isinstance(obj, Board):
         pass
     if isinstance(obj, Interface):
@@ -150,6 +162,10 @@ def _get_interfaces(obj: Any):
     Implementation of get_interfaces
     """
     if isinstance(obj, System):
+        pass
+    if isinstance(obj, Rtl):
+        yield obj.other
+    if isinstance(obj, Signal):
         pass
     if isinstance(obj, Board):
         for interface in obj.interfaces:
@@ -205,6 +221,10 @@ def _get_components(obj: Any):
     """
     if isinstance(obj, System):
         pass
+    if isinstance(obj, Rtl):
+        pass
+    if isinstance(obj, Signal):
+        pass
     if isinstance(obj, Board):
         for component in obj.components:
             yield component
@@ -259,6 +279,10 @@ def _get_wires(obj: Any):
     """
     if isinstance(obj, System):
         pass
+    if isinstance(obj, Rtl):
+        pass
+    if isinstance(obj, Signal):
+        pass
     if isinstance(obj, Board):
         for wire in obj.wires:
             yield wire
@@ -311,6 +335,10 @@ def _get_pins(obj: Any):
     Implementation of get_pins
     """
     if isinstance(obj, System):
+        pass
+    if isinstance(obj, Rtl):
+        pass
+    if isinstance(obj, Signal):
         pass
     if isinstance(obj, Board):
         pass

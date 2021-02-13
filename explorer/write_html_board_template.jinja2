@@ -40,9 +40,13 @@
         {% for itf in board.interfaces %}
         <li>
             <a href="{{ board.identifier|lower|urlencode }}.html#itf-{{ itf.name|lower|urlencode }}">{{ itf.name }}</a>
-            {% if itf.other != None %}
-            (connected to
-            <a href="{{ itf.other.parent.identifier|lower|urlencode }}.html#itf-{{ itf.other.name|lower|urlencode }}">{% if itf.other.parent != board %}{{ itf.other.parent.identifier }}.{% endif %}{{ itf.other.name }}</a>)
+            {% if itf.other == None %}
+            {% elif 'Rtl' in itf.other.__class__.__name__%}
+                (connected to
+                <a href="{{ itf.other.name|lower|urlencode }}.html">{{ itf.other.name }}</a>)
+            {% elif 'Interface' in itf.other.__class__.__name__%}
+                (connected to
+                <a href="{{ itf.other.parent.identifier|lower|urlencode }}.html#itf-{{ itf.other.name|lower|urlencode }}">{% if itf.other.parent != board %}{{ itf.other.parent.identifier }}.{% endif %}{{ itf.other.name }}</a>)
             {% endif %}
         </li>
         {% endfor %}
@@ -65,18 +69,25 @@
         </thead>
         <tbody>
         {% for sig in board.wires %}
-        {% set net = netlist.resolved_net(sig) %}
+        {% set net = netlist.get_net_corresponding_to_wire_or_signal(sig) %}
         {% if net not in writtenNets %}
         {{ writtenNets.append(net) or '' }}
         <tr id="net-{{ net.net_number }}">
             {% for brd in boards %}
             <td>
             <p>
-                {% for wire in net._wires if brd == wire.parent %}
+                {% for ws in net._things if (ws.__class__.__name__ == 'Wire' and brd == ws.parent) or (ws.__class__.__name__ == 'Signal' and brd == ws.parent) %}
+                {% if ws.__class__.__name__ == 'Signal' %}
                 {% if not loop.first %}<br>{% endif %}
-                <a href="{{ wire.parent.identifier|lower|urlencode }}.html#wire-{{ wire.name|lower|urlencode }}">
-                    {{ wire.name }}
+                <a href="{{ ws.parent.name|lower|urlencode }}.html#wire-{{ ws.name|lower|urlencode }}">
+                    {{ ws.name }}
                 </a>
+                {% elif ws.__class__.__name__ == 'Wire' %}
+                {% if not loop.first %}<br>{% endif %}
+                <a href="{{ ws.parent.identifier|lower|urlencode }}.html#wire-{{ ws.name|lower|urlencode }}">
+                    {{ ws.name }}
+                </a>
+                {% endif %}
                 {% endfor %}
             </p>
             </td>
@@ -145,7 +156,7 @@
         {% for sig in board.wires %}
 
         <li id="wire-{{ sig.name|lower|urlencode }}">
-            <p>{{ sig.name }} <a href="#net-{{ netlist.resolved_net(sig).net_number }}">(Reveal in netlist view)</a></p>
+            <p>{{ sig.name }} <a href="#net-{{ netlist.get_net_corresponding_to_wire_or_signal(sig).net_number }}">(Reveal in netlist view)</a></p>
             <p>
                 Wire type:
                 {% if sig.type == 0 %}Default
@@ -178,6 +189,10 @@
             <p>Connected to:
                 {% if itf.other == None %}
                     nothing
+                {% elif 'Rtl' in itf.other.__class__.__name__%}
+                    <a href="{{ itf.other.name }}.html">
+                        {{ itf.other.name }}
+                    </a>
                 {% else %}
                     <a href="{{ itf.other.parent.identifier}}.html#itf-{{ itf.other.name|lower|urlencode }}">
                         {% if brd != itf.other.parent %}{{ itf.other.parent.identifier }}.{% endif %}{{ itf.other.name }}
@@ -186,7 +201,16 @@
             </p>
             <table border="1">
                 <thead>
-                    <tr><th>This wire</th><th>This pin</th><th>Index</th><th>Other pin</th><th>Other wire</th></tr>
+                    <tr>
+                        <th>This wire</th>
+                        <th>This pin</th>
+                        <th>Index</th>
+                        {% if 'Rtl' in itf.other.__class__.__name__%}
+                        <th>Pin location</th><th>FPGA Top level port</th>
+                        {% else %}
+                        <th>Other pin</th><th>Other wire</th>
+                        {% endif %}
+                    </tr>
                 </thead>
                 <tbody>
                     {% for pin in itf._pins %}
@@ -199,6 +223,16 @@
                         </a></td>
                         {% if itf.other == None %}
                         <td>{{ loop.index0 }}</td><td colspan=2>nada</td>
+                        {% elif 'Rtl' in itf.other.__class__.__name__ %}
+                        <td><a href="{{ itf.other.name|lower|urlencode }}.html#itf-idx-{{ loop.index0 }}">
+                            {{ loop.index0 }}
+                        </a></td>
+                        <td>
+                            {{ itf.other.signals[loop.index0].pinloc }}
+                        </td>
+                        <td><a href="{{ itf.other.name|lower|urlencode }}.html#sig-{{ itf.other.signals[loop.index0].name|lower|urlencode }}">
+                            {{ itf.other.signals[loop.index0].name }}
+                        </a></td>
                         {% else %}
                         <td><a href="{{ itf.other.parent.identifier|lower|urlencode }}.html#itf-{{ itf.other.name|lower|urlencode }}-idx-{{ loop.index0 }}">
                             {{ loop.index0 }}

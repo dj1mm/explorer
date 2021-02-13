@@ -10,9 +10,11 @@ class Serialize:
 
     def __call__(self, obj) -> None:
         if isinstance(obj, System):
-            res = {"id": id(obj), "kind": "system", "name": obj.name, "boards": [], "nets": []}
+            res = {"id": id(obj), "kind": "system", "name": obj.name, "boards": [], "rtls": [], "nets": []}
             for brd in obj.boards:
                 res["boards"] += [id(brd)]
+            for rtl in obj.rtls:
+                res["rtls"] += [id(rtl)]
             for net in self.netlist.nets.values():
                 res["nets"] += [id(net)]
             self.result[id(obj)] = res
@@ -20,6 +22,16 @@ class Serialize:
 
             for net in self.netlist.nets.values():
                 self.__call__(net)
+
+        if isinstance(obj, Rtl):
+            res = {"id": id(obj), "kind": "rtl", "name": obj.name, "parent": id(obj.parent), "signals": []}
+            for sig in obj.signals:
+                res["signals"] += [id(sig)]
+            self.result[id(obj)] = res
+
+        if isinstance(obj, Signal):
+            res = {"id": id(obj), "kind": "signal", "name": obj.name, "pinloc": obj.pinloc, "parent": id(obj.parent)}
+            self.result[id(obj)] = res
 
         if isinstance(obj, Board):
             res = {"id": id(obj), "kind": "board", "name": obj.name, "parent": id(obj.parent), "identifier": obj.identifier, "components": [], "wires": [], "interfaces": []}
@@ -41,7 +53,7 @@ class Serialize:
             self.result[id(obj)] = res
 
         if isinstance(obj, Component):
-            res = {"id": id(obj), "kind": "component", "refdes": obj.refdes, "package": obj.package, "parent": id(obj.parent), "type": id(obj.type), "pins": [], "model": []}
+            res = {"id": id(obj), "kind": "component", "refdes": obj.refdes, "package": obj.package, "parent": id(obj.parent), "type": obj.type, "pins": [], "model": []}
             for pin in obj._pins:
                 res["pins"] += [id(obj._pins[pin])]
             if not obj.ignore_model and len(obj.model) > 0:
@@ -58,7 +70,7 @@ class Serialize:
             self.result[id(obj)] = res
 
         if isinstance(obj, Wire):
-            res = {"id": id(obj), "kind": "wire", "name": obj.name, "type": obj.type, "parent": id(obj.parent), "pins": [], "net": id(self.netlist.resolved_net(obj))}
+            res = {"id": id(obj), "kind": "wire", "name": obj.name, "type": obj.type, "parent": id(obj.parent), "pins": [], "net": id(self.netlist.get_net_corresponding_to_wire_or_signal(obj))}
             for pin in obj._pins:
                 if isinstance(pin, Pin) is False:
                     continue
@@ -66,9 +78,9 @@ class Serialize:
             self.result[id(obj)] = res
 
         if isinstance(obj, Net):
-            res = {"id": id(obj), "kind": "net", "wires": []}
-            for sig in obj._wires:
-                res["wires"] += [id(sig)]
+            res = {"id": id(obj), "kind": "net", "things": []}
+            for thing in obj._things:
+                res["things"] += [id(thing)]
             self.result[id(obj)] = res
 
 def write_json(system: System, file: str):

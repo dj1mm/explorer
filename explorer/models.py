@@ -28,6 +28,7 @@ class System:
     def __init__(self, name = "Unnamed system") -> None:
         self.name = name
         self._boards: list[Board] = list()
+        self._rtls: list[Rtl] = list()
 
     def add_board(self, board: Board):
         if board._parent is self: raise RuntimeError(f"board {board.identifier} is already part of system")
@@ -45,11 +46,109 @@ class System:
     def boards(self):
         return self._boards
 
+    def add_rtl(self, rtl: Rtl):
+        if rtl._parent is self: raise RuntimeError(f"rtl {rtl.name} is already part of system")
+        if rtl._parent is not None: raise RuntimeError("rtl {rtl.name} is already part of a system")
+        self._rtls.append(rtl)
+        rtl._parent = self
+
+    def get_rtl(self, name: str):
+        for rtl in self._rtls:
+            if rtl.name == name:
+                return rtl
+        raise RuntimeError(f"rtl {name} not found")
+
+    @property
+    def rtls(self):
+        return self._rtls
+
     def __repr__(self) -> str:
-        return f"System {self.name} ({len(self.boards)} boards)"
+        return f"System {self.name} ({len(self.boards)} boards) ({len(self.rtls)} rtls)"
 
     def __str__(self) -> str:
         return f"System {hex(id(self))}"
+
+class Rtl:
+    """
+    A pcb is kind of a big thing that connects ics and connectors together, and
+    usually, a couple of these chips are an fpga. The code running on the fpga
+    is called an rtl. The way the rtl interfaces with the outside world is via
+    'top level signal'.
+
+    Effectively, the pcb connects signal on one fpga, to signal on another fpga.
+    """
+    def __init__(self, name: str = "unnamed_rtl"):
+        self.name = name
+        self._parent: System | None   = None
+        self._signals: list[Signal]   = list()
+        self._other: Interface | None = None
+
+    @property
+    def parent(self):
+        if self._parent is None: raise RuntimeError(f"rtl {self.name} malformed")
+        return self._parent
+
+    @property
+    def other(self):
+        if self._parent is None or self._other is None: raise RuntimeError(f"rtl {self.name} malformed")
+        return self._other
+
+    def add_signal(self, name, pinloc):
+        if self._parent is not None: raise RuntimeError(f"rtl {self.name} is already formed and no more signal can be added")
+        signal = Signal(name, pinloc)
+        signal._parent = self
+        self._signals.append(signal)
+
+    def get_signal(self, name: str):
+        for signal in self._signals:
+            if signal.name == name:
+                return signal
+        raise RuntimeError(f"signal {name} not found")
+
+    @property
+    def signals(self):
+        return self._signals
+
+    @property
+    def signal(self):
+        return self._signals
+
+    def __repr__(self) -> str:
+        return f"Rtl {self.name} ({len(self._signals)} top level signal)"
+
+    def __str__(self) -> str:
+        return f"Rtl {hex(id(self))}"
+
+class Signal:
+    """
+    Top level signal of an rtl.
+
+    Signal have a name and a pinloc as a minimum.
+    Todo: add IOSTANDARDS and BANK too as these are useful infos
+    """
+    def __init__(self, name: str, pinloc: str):
+        self._name = name
+        self._pinloc = pinloc
+        self._parent: Rtl | None = None
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def pinloc(self):
+        return self._pinloc
+
+    @property
+    def parent(self):
+        if self._parent is None: raise RuntimeError("signal malformed")
+        return self._parent
+
+    def __repr__(self) -> str:
+        return f"Signal {self.name} => {self.pinloc}"
+
+    def __str__(self) -> str:
+        return f"Signal {hex(id(self))}"
 
 class Board:
     """
@@ -153,7 +252,7 @@ class Interface:
         self._name = name
 
         self._parent: Board | None    = None
-        self._other: Interface | None = None
+        self._other: Interface | Rtl | None = None
         self._pins: list[Pin]         = list()
 
     @property
@@ -182,13 +281,15 @@ class Interface:
     def pins(self):
         return self._pins
 
-    def connect(self, other: Interface):
+    def connect(self, other: Interface | Rtl):
         if self.parent is None: raise RuntimeError("interface malformed")
         if other.parent is None: raise RuntimeError("interface malformed")
 
         if self._other is not None: raise RuntimeError(f"interface {self.name} is already connected")
         if other._other is not None: raise RuntimeError(f"interface {other.name} is already connected")
-        if len(self._pins) != len(other._pins): raise RuntimeError("interface do not match")
+
+        other_number = len(other._pins) if isinstance(other, Interface) else len(other._signals)
+        if len(self._pins) != other_number: raise RuntimeError("interface do not match")
 
         self._other = other
         other._other = self
@@ -359,12 +460,12 @@ class Wire:
 
 
 class Net:
-    def __init__(self, net_number: int, wires: set[Wire]):
+    def __init__(self, net_number: int, things: set[Wire | Signal]):
         self.net_number = net_number
-        self._wires = wires
+        self._things = things
 
     def __repr__(self) -> str:
-        return f"Net #{self.net_number} ({len(self._wires)} wires)"
+        return f"Net #{self.net_number} ({len(self._things)} wires and signals)"
 
 class Netlist:
     """
@@ -385,12 +486,16 @@ class Netlist:
     # sig_a.connect(sig_c)
 
     sm = Netlist(system)
-    sm.resolved_net(sig_a) == sm.resolved_net(sig_c) != sm.resolved_net(sig_b)
+    n1 = sm.get_net_corresponding_to_wire_or_signal(sig_a)
+    n2 = sm.get_net_corresponding_to_wire_or_signal(sig_c)
+    n3 = sm.get_net_corresponding_to_wire_or_signal(sig_b)
+
+    n1 == n2 != n3
     ```
     """
     def __init__(self, system: System):
         set_of_wires_and_signals = DisjointSet()
-        self.nets: dict[Wire, Net] = dict()
+        self.nets: dict[Wire | Signal, Net] = dict()
 
         for board in system.boards:
             for wire in board.wires:
@@ -398,17 +503,25 @@ class Netlist:
             for interface in board.interfaces:
                 if interface.other is None:
                     continue
-                for i in range(len(interface.pins)):
-                    lhs = interface.pins[i].wire
-                    rhs = interface.other.pins[i].wire
-                    if lhs is None or rhs is None:
-                        continue
-                    # Note wire NC is a special wire. Any pins connected to
-                    # the NC wire are 'No connect', ie are open. So,dont even
-                    # try to merge NC wires with other wires if any
-                    if (lhs.type == WireType.NC) ^ (rhs.type == WireType.NC):
-                        continue
-                    set_of_wires_and_signals.union(lhs, rhs)
+                if isinstance(interface.other, Rtl):
+                    for i in range(len(interface.pins)):
+                        lhs = interface.pins[i].wire
+                        rhs = interface.other._signals[i]
+                        if lhs is None or rhs is None:
+                            continue
+                        set_of_wires_and_signals.union(lhs, rhs)
+                if isinstance(interface.other, Interface):
+                    for i in range(len(interface.pins)):
+                        lhs = interface.pins[i].wire
+                        rhs = interface.other.pins[i].wire
+                        if lhs is None or rhs is None:
+                            continue
+                        # Note wire NC is a special wire. Any pins connected to
+                        # the NC wire are 'No connect', ie are open. So,dont even
+                        # try to merge NC wires with other wires if any
+                        if (lhs.type == WireType.NC) ^ (rhs.type == WireType.NC):
+                            continue
+                        set_of_wires_and_signals.union(lhs, rhs)
             for component in board.components:
                 if component.ignore_model:
                     continue
@@ -424,29 +537,42 @@ class Netlist:
                     set_of_wires_and_signals.union(lhs, rhs)
 
         net_number = 0
-        for key,sigs in set_of_wires_and_signals.itersets(with_canonical_elements=True):
-            self.nets[key] = Net(net_number, sigs)
+        for key, ws in set_of_wires_and_signals.itersets(with_canonical_elements=True):
+            self.nets[key] = Net(net_number, ws)
             net_number += 1
         self.set_of_wires_and_signals = set_of_wires_and_signals
 
-    def resolved_net(self, wire: Wire):
+    def get_net_corresponding_to_wire_or_signal(self, thing: Wire | Signal):
         """
-        Given a wire (which is part of the system provided while constructing
-        this class), get its corresponding net
+        Given a wire or a signal (which is part of the system provided while
+        constructing this class), get its corresponding net
         """
-        if wire not in self.nets:
-            wire = self.set_of_wires_and_signals.find(wire)
-        if wire not in self.nets:
-            raise ValueError("Wire not part of wire map")
-        return self.nets[wire]
+        if thing not in self.nets:
+            thing = self.set_of_wires_and_signals.find(thing)
+        if thing not in self.nets:
+            raise ValueError("Wire not part of netlist")
+        return self.nets[thing]
 
-    def resolved_wires(self, wire: Wire):
-        """
-        Given a wire (which is part of the system provided while constructing
-        this class), get all other wires electrically connected to it
-        """
-        return (sig for sig in self.resolved_net(wire)._wires if sig != wire)
+def this_is_an_fpga_and_theres_its_rtl(fpga: Component, rtl: Rtl):
+    """
+    this_is_an_fpga_and_theres_its_rtl(fpga, rtl)
 
+    Helper function that links RTL to its Component.
+    """
+
+    interface = Interface(f"{fpga.refdes}_{rtl.name}")
+
+    fpga.parent.parent.add_rtl(rtl)
+    fpga.parent.add_interface(interface)
+
+    # Sort rtl signal by name
+    rtl._signals.sort(key=lambda x: x.name)
+
+    for sig in rtl._signals:
+        pin = fpga.get_pin(sig.pinloc)
+        interface.add_pin(pin)
+
+    interface.connect(rtl)
 
 class Dump:
     def __init__(self, obj, file = None, offset = 4) -> None:
@@ -494,7 +620,36 @@ class Dump:
             with self.indent(True):
                 result += self.dump(brd)
 
+        if len(inst._rtls) == 0:
+            result += [f"{self.indentation()}rtls: []"]
+        else:
+            result += [f"{self.indentation()}rtls:"]
+        for rtl in inst._rtls:
+            with self.indent(True):
+                result += self.dump(rtl)
 
+        return result
+
+    def dump_rtl(self, inst):
+        result = []
+        result += [f"{self.title()}Rtl {hex(id(inst))} name: '{inst.name}'"]
+        result += [f"{self.indentation()}parent&: {inst._parent}"]
+        result += [f"{self.indentation()}other&: {inst._other}"]
+
+        if len(inst._signals) == 0:
+            result += [f"{self.indentation()}signals: []"]
+        else:
+            result += [f"{self.indentation()}signals:"]
+        for signal in inst._signals:
+            with self.indent(True):
+                result += self.dump(signal)
+
+        return result
+
+    def dump_signal(self, inst):
+        result = []
+        result += [f"{self.title()}Signal {hex(id(inst))} name: '{inst.name}' pinloc: '{inst.pinloc}'"]
+        result += [f"{self.indentation()}parent&: {inst._parent}"]
         return result
 
     def dump_board(self, inst: Board):

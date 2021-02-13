@@ -77,6 +77,13 @@ def write_html(system: System, *args, **kwargs):
             template = env.get_template("write_html_board_template.jinja2")
             f.write(template.render(board=brd, netlist=netlist))
 
+    for rtl in system.rtls:
+        file = f'{folder}/{rtl.name}.html'
+        os.makedirs(os.path.dirname(file), exist_ok=True)
+        with open(file, "w") as f:
+            template = env.get_template("write_html_rtl_template.jinja2")
+            f.write(template.render(rtl=rtl, netlist=netlist))
+
     for x in extra:
         file = f'{folder}/connectivity-{x.id}.html'
         os.makedirs(os.path.dirname(file), exist_ok=True)

@@ -1,0 +1,97 @@
+<html>
+
+<head>
+    <title>Exploring {{ rtl.name }}</title>
+</head>
+<body>
+
+    <h1>{{ rtl.name }}</h1>
+    <p>Part of system: <a href="index.html">{{ rtl.parent.name }}</a></p>
+
+    <h2>Table of contents</h2>
+    <ul>
+        <li><a href="#nets">Netlist view</a></li>
+        <li><a href="#itfv">Interface view</a></li>
+    </ul>
+
+    <h2 id="brd-{{ rtl.name|lower|urlencode }}-nets">Netlist view</h2>
+    <p>Netlist view from {{ rtl.name }}'s POV.</p>
+    {% set rtls = [rtl] %}
+    {% set writtenNets = [] %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>{{ rtl.name }}</th>
+            {% for _rtl in rtl.parent.rtls if _rtl != rtl %}
+                {{ rtls.append(_rtl) or '' }}
+                <th><a href="{{ _rtl.name|lower|urlencode }}.html">{{ _rtl.name }}</a></th>
+            {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for sig in rtl.signals %}
+        {% set net = netlist.get_net_corresponding_to_wire_or_signal(sig) %}
+        {% if net not in writtenNets %}
+        {{ writtenNets.append(net) or '' }}
+        <tr id="net-{{ net.net_number }}">
+            {% for _rtl in rtls %}
+            <td>
+            <p>
+                {% for ws in net._things if ws.__class__.__name__ == 'Signal' and _rtl == ws.parent %}
+                {% if not loop.first %}<br>{% endif %}
+                <a href="{{ ws.parent.name|lower|urlencode }}.html#sig-{{ ws.name|lower|urlencode }}">
+                    {{ ws.name }}
+                </a>
+                {% endfor %}
+            </p>
+            </td>
+            {% endfor %}
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 id="itfv">Interface view</h2>
+    <p>Connected to:
+        {% if rtl.other == None %}
+            nothing
+        {% else %}
+            <a href="{{ rtl.other.parent.identifier}}.html#itf-{{ rtl.other.name|lower|urlencode }}">
+                {{ rtl.other.name }}
+            </a>
+        {% endif %}
+    </p>
+    <table border="1">
+        <thead>
+            <tr><th>FPGA Top level port</th><th>Pin location</th><th>Index</th><th>Other pin number</th><th>Other pin name</th></tr>
+        </thead>
+        <tbody>
+            {% for sig in rtl.signals %}
+            <tr id="itf-idx-{{ loop.index0 }}">
+                <td id="sig-{{ sig.name|lower|urlencode }}">
+                    {{ sig.name }}
+                </td>
+                <td>
+                    {{ sig.pinloc }}
+                </td>
+                {% if rtl.other == None %}
+                <td>{{ loop.index0 }}</td><td colspan=2>nada</td>
+                {% else %}
+                <td><a href="{{ rtl.other.parent.identifier|lower|urlencode }}.html#itf-{{ rtl.other.name|lower|urlencode }}-idx-{{ loop.index0 }}">
+                    {{ loop.index0 }}
+                </a></td>
+                <td><a href="{{ rtl.other.parent.identifier|lower|urlencode }}.html#com-{{ rtl.other._pins[loop.index0].parent.refdes|lower|urlencode }}-pin-{{ rtl.other._pins[loop.index0].name|lower|urlencode }}">
+                    {{ rtl.other._pins[loop.index0].parent.refdes }}.{{ rtl.other._pins[loop.index0].name }}
+                </a></td>
+                <td><a href="{{ rtl.other.parent.identifier|lower|urlencode }}.html#wire-{{ rtl.other._pins[loop.index0].wire.name|lower|urlencode }}">
+                    {{ rtl.other._pins[loop.index0].wire.name }}
+                </a></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
