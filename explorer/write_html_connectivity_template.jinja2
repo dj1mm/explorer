@@ -43,7 +43,7 @@
         {% set starting_wires_or_signals = starting.wires %}
     {%- elif starting.__class__.__name__ == 'Component' %}
         {% set starting_wires_or_signals = [] %}
-        {% for pin in starting._outer_pins.values() %}
+        {% for pin in starting._pins.values() %}
             {{ starting_wires_or_signals.append(pin.wire) or '' }}
         {% endfor %}
     {%- elif starting.__class__.__name__ == 'Rtl' %}

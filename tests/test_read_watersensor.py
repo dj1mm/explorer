@@ -8,6 +8,6 @@ def test_main():
     my_system = System()
 
     # Read the netlist of the watersensor board
-    watersensor = read_allegro('tests/watersensor')
-    watersensor.refdes = "watersensor"
+    watersensor = read_orcad('tests/watersensor')
+    watersensor.identifier = "watersensor"
     my_system.add_board(watersensor)

@@ -1,6 +1,6 @@
 
 from .algorithms import *
-from .read_allegro import read_allegro
+from .read_orcad import read_orcad
 from .read_eagle import read_eagle
 from .models import *
 from .read_rtl import read_rtl

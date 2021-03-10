@@ -8,6 +8,6 @@ def test_main():
     my_system = System()
 
     # Read the netlist of the seniordesign board
-    seniordesign = read_allegro('tests/seniordesign')
-    seniordesign.refdes = "seniordesign"
+    seniordesign = read_orcad('tests/seniordesign')
+    seniordesign.identifier = "seniordesign"
     my_system.add_board(seniordesign)

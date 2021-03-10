@@ -10,7 +10,7 @@ def test_main():
 
     # Read the netlist of the mega board
     mega = read_eagle('tests/mega/mega.nets', 'tests/mega/mega.pins', 'tests/mega/mega.parts')
-    mega.refdes = "mega"
+    mega.identifier = "mega"
     my_system.add_board(mega)
 
     mega_headers = Interface("mega_headers")
@@ -26,7 +26,7 @@ def test_main():
 
     # Read the netlist of the base shield
     base = read_eagle('tests/base/base.nets', 'tests/base/base.pins', 'tests/base/base.parts')
-    base.refdes = "base"
+    base.identifier = "base"
     my_system.add_board(base)
 
     base_headers = Interface("base_headers")

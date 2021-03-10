@@ -684,14 +684,14 @@ class Parser:
         return properties
 
 
-def read_allegro(folder: str):
+def read_orcad(folder: str):
     """
-    Read allegro netlist
+    Read orcad netlist
     """
 
     parse = Parser()
 
-    # Allegro netlist folder will consist of these files: pstchip, pstxprt and
+    # Orcad netlist folder will consist of these files: pstchip, pstxprt and
     # pstxnet that we each parse in turn
     pstchip_dat = os.path.join(folder, 'pstchip.dat')
     with open(pstchip_dat, 'r') as f:
