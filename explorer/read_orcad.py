@@ -495,6 +495,23 @@ class Parser:
                 self.consume(TokenType.STRING)
                 self.consume(TokenType.SEMICOLON)
 
+            if self.current_token.type == TokenType.CLASS:
+                self.consume(TokenType.CLASS)
+                self.consume(TokenType.EQUALS)
+
+                clazz = self.current_token.value
+                if clazz == "'IO'":
+                    parttype = ComponentType.Connector
+                elif clazz == "'DISCRETE'":
+                    parttype = ComponentType.Discrete
+                elif clazz == "'IC'":
+                    parttype = ComponentType.Chip
+                else:
+                    parttype = ComponentType.Default
+
+                self.consume(TokenType.STRING)
+                self.consume(TokenType.SEMICOLON)
+
         self.consume(TokenType.ENDBODY)
         self.consume(TokenType.SEMICOLON)
         
@@ -567,6 +584,12 @@ class Parser:
             self.consume(TokenType.COLON)
             self.consume(TokenType.STRING)
             self.consume(TokenType.COLON)
+
+            if self.current_token.type == TokenType.ID:
+                self.consume(TokenType.ID)
+                self.consume(TokenType.EQUALS)
+                self.consume(TokenType.STRING)
+
             self.consume(TokenType.SEMICOLON)
 
 
